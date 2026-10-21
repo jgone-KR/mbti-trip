@@ -623,6 +623,16 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 .lday{font-size:14px;color:var(--muted);margin:0 0 8px}.lday b{color:var(--ink)}
 .lmiss{font-size:13.5px;color:var(--muted);background:var(--paper);border:1px dashed var(--line);border-radius:10px;padding:8px 10px;margin:0 0 10px;line-height:1.5}
 .lmiss button{all:unset;cursor:pointer;color:var(--accent);font-weight:800;margin-left:4px}
+
+.ptl .pacts{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin-top:4px}
+.ptl .pacts button{all:unset;cursor:pointer;font-size:14px;font-weight:700;color:var(--accent)}
+.ptl .pacts button.del{color:var(--stamp)}
+.ptl .pacts button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.pswl{display:flex;flex-direction:column;gap:6px;margin-top:8px;padding:8px;border-radius:10px;background:var(--paper);border:1px solid var(--line)}
+.pswl.empty{font-size:13.5px;color:var(--muted)}
+.pswi{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pswi>span{min-width:0}.pswi b{font-size:15px}.pswi small{display:block;font-size:12.5px;color:var(--muted);line-height:1.4}
+.pswi button{all:unset;cursor:pointer;flex:none;padding:7px 12px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-weight:800;font-size:13.5px}
 </style>
 
 <div class="onb" id="onb" role="dialog" aria-modal="true" aria-label="앱 사용법" hidden>
@@ -2248,8 +2258,9 @@ async function getSample(){if(sampleTried)return sampleCap;sampleTried=true;
 async function aiProposal(kind,text,draft){
   const sm=await getSample();if(!sm)return null;
   const now=nowH(),sun=sunsetH(LV.city),pr=profile();
-  const cand=CITY[LV.city].p.filter(p=>!LV.visited.includes(p[0])).map(p=>{const k=COORD[p[0]]?haversine(locCoord(),COORD[p[0]])*1.3:null;const I=INFO[p[0]];return `${p[0]} | ${CAT[p[1]]}${I?` | 위치 ${I[0]} | 대표 메뉴 ${I[1]} | ${I[2]}${I[3]?" | "+I[3]:""}`:""} | ${isIndoor(p)?"실내":"야외"}${isDrink(p)?" | 술 가능":""} | 활기${p[2]>0?"+":""}${p[2]} | 궁합 ${pct(p,pr)??"-"}% | 현재 위치에서 ${k==null?"?":k.toFixed(1)+"km"}`}).join("\n");
+  let cand=CITY[LV.city].p.filter(p=>!LV.visited.includes(p[0])).map(p=>{const k=COORD[p[0]]?haversine(locCoord(),COORD[p[0]])*1.3:null;const I=INFO[p[0]];return `${p[0]} | ${CAT[p[1]]}${I?` | 위치 ${I[0]} | 대표 메뉴 ${I[1]} | ${I[2]}${I[3]?" | "+I[3]:""}`:""} | ${isIndoor(p)?"실내":"야외"}${isDrink(p)?" | 술 가능":""} | 활기${p[2]>0?"+":""}${p[2]} | 궁합 ${pct(p,pr)??"-"}% | 현재 위치에서 ${k==null?"?":k.toFixed(1)+"km"}`}).join("\n");
   const label=(QUICK.find(q=>q[0]===kind)||[0,""])[1];
+  if((LV.history||[]).length){const a=cand.split("\n");for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}cand=a.join("\n")}
   const prompt=`너는 여행 중인 사용자의 남은 일정을 실시간으로 다시 짜 주는 여행 비서야. 계획대로 안 되는 상황에서 바로 쓸 수 있는 현실적인 대안을 줘.
 
 [지금 상황]
@@ -2267,7 +2278,9 @@ ${label?"버튼: "+label:""}${text?"\n직접 입력: "+text:""}
 [후보 장소 목록] 이름 | 분류 | 실내/야외 | 특징 | 현재 위치에서 거리
 ${cand}
 
-[참고: 규칙 기반 초안]
+${(LV.history||[]).length?`[이전에 보여 준 추천 - 사용자가 '다시 추천'을 눌렀어. 이번엔 다른 콘셉트로, 아래 조합과 장소가 절반 이상 겹치지 않게 짜]
+${LV.history.map((h,i)=>`${i+1}) ${h.join(" → ")}`).join("\n")}
+`:""}[참고: 규칙 기반 초안]
 ${draft.head} - ${draft.msg}
 일정: ${chain(draft.stops)||"없음"}
 
@@ -2289,13 +2302,17 @@ JSON으로만 답해:
   if(out.parkFirst&&LV.move==="car")stops.unshift(hotelStop());
   return{kind,head:String(out.headline||draft.head).slice(0,40),msg:String(out.message||draft.msg).slice(0,400),stops,move,changed:true,by:"ai"};
 }
-async function ask(kind,text=""){
+async function ask(kind,text="",again=false){
   if(LV.busy)return;
+  if(!again){LV.history=[];LV.pswapSeen=[]}else if(LV.prop&&LV.prop.stops)LV.history=(LV.history||[]).concat([LV.prop.stops.map(x=>x.p[0])]);
+  LV.lastAsk={kind,text};LV.pswap=null;
   const draft=ruleProposal(kind==="text"?textKind(text):kind);
   LV.prop=Object.assign({},draft,{loading:true});LV.busy=true;renderLive();
   let prop=draft;
   try{const ai=await aiProposal(kind==="text"?draft.kind:kind,text,draft);if(ai)prop=ai}
   catch(e){prop=Object.assign({},draft,{aiFail:e&&e.code==="not_granted"?"AI 사용을 허용하지 않아서 자동 추천을 보여 드려요.":e&&e.code==="rate_limited"?"AI 요청이 많아 잠시 자동 추천을 보여 드려요.":"AI 연결이 안 돼서 자동 추천을 보여 드려요."})}
+  const last=(LV.history||[]).slice(-1)[0];
+  if(again&&last&&prop.stops.map(x=>x.p[0]).join("|")===last.join("|"))prop=Object.assign({},prop,{aiFail:(prop.aiFail?prop.aiFail+" ":"")+"조건에 맞는 다른 조합이 거의 없어서 비슷한 추천이 나왔어요. 바꾸고 싶은 곳만 '이것만 바꾸기'를 눌러 보세요."});
   LV.prop=prop;LV.busy=false;renderLive();
 }
 function textKind(t){return /술|맥주|한잔|와인|이자카야/.test(t)?"drink":/비|우산|소나기/.test(t)?"rain":/피곤|힘들|지쳐|졸려/.test(t)?"tired":/조용|한적|사람.*없/.test(t)?"quiet":/숙소|호텔|들어가/.test(t)?"hotel":/배고|밥|먹고/.test(t)?"hungry":/웨이팅|줄|대기/.test(t)?"wait":"keep"}
@@ -2348,7 +2365,7 @@ function renderLive(){
   else if(P.loading)card=`<div class="aihead"><span class="aibadge ai">AI</span><b>상황에 맞게 다시 짜는 중이에요</b></div><p class="small">현재 시각, 위치, 날씨, 일몰, 이동수단을 함께 보고 있어요.</p>`;
   else{const fl=flow(P.stops,P.move);card=`<div class="aihead"><span class="aibadge ${P.by==="ai"?"ai":""}">${P.by==="ai"?"AI 추천":"자동 추천"}</span><b>${esc(P.head)}</b></div><p>${esc(P.msg)}</p>
     ${P.aiFail?`<p class="small">${P.aiFail}</p>`:""}
-    ${P.stops.length?`<ol class="ptl">${fl.map(x=>`<li><span class="pt">${fmtL(x.arr)}</span><span class="pb"><b>${esc(x.s.p[0])}</b>${x.s.custom?"":infoHTML(x.s.p[0],LV.city,true)}<small>${esc(x.from)}에서 ${x.L?`${legTxt(x.L)}`:"이동 정보 없음"}${x.s.custom?"":isIndoor(x.s.p)?" · 실내":" · 야외"}</small>${x.s.custom?"":`<a href="${placeURL(x.s.p[0],LV.city)}" target="_blank" rel="noopener">${mapApp(LV.city)}에서 위치 확인</a>`}</span></li>`).join("")}</ol>`:""}
+    ${P.stops.length?`<ol class="ptl">${fl.map((x,pi)=>{return `<li><span class="pt">${fmtL(x.arr)}</span><span class="pb"><b>${esc(x.s.p[0])}</b>${x.s.custom?"":infoHTML(x.s.p[0],LV.city,true)}<small>${esc(x.from)}에서 ${x.L?`${legTxt(x.L)}`:"이동 정보 없음"}${x.s.custom?"":isIndoor(x.s.p)?" · 실내":" · 야외"}</small><span class="pacts">${x.s.custom?"":`<a href="${placeURL(x.s.p[0],LV.city)}" target="_blank" rel="noopener">${mapApp(LV.city)}에서 위치 확인</a><button type="button" data-pswap="${pi}" aria-expanded="${LV.pswap===pi}">${LV.pswap===pi?"닫기":"이것만 바꾸기"}</button>`}<button type="button" class="del" data-pdel="${pi}">빼기</button></span>${LV.pswap===pi?pswapHTML(P,pi):""}</span></li>`}).join("")}</ol>`:""}
     <div class="row"><button class="primary" id="propApply">이대로 바꾸기</button><button id="propAgain">다시 추천</button><button id="propClose">닫기</button></div>`}
   $("aiCard").innerHTML=card;
   $("quick").innerHTML=QUICK.map(([k,l])=>`<button data-q="${k}" ${LV.busy?"disabled":""}>${l}</button>`).join("");
@@ -2367,13 +2384,31 @@ function renderLive(){
       <div class="acts"><button data-arrive="${i}">여기 도착했어요</button>${i===0?rlinks:""}<button class="del" data-skip="${i}">건너뛰기</button></div></div></li>`}).join("")
     :`<li class="hint">남은 일정이 없어요. '배고파'나 '이대로 갈래'를 누르면 근처 추천을 받을 수 있어요.</li>`;
 }
+/* 추천 카드에서 한 곳만 바꾸기: 같은 종류 중 앞 장소와 가깝고 성향에 맞는 곳 */
+function pswapCands(P,i){
+  const s=P.stops[i];if(!s||s.custom)return[];
+  const used=new Set(P.stops.map(x=>x.p[0]).concat(LV.visited,LV.pswapSeen||[])),pr=profile();
+  const ref=i>0?coordOf(P.stops[i-1]):locCoord(),cat=s.cat;
+  const pool0=CITY[LV.city].p.filter(p=>!used.has(p[0])&&(p[1]===cat||(cat==="c"&&p[1]==="f")||(cat==="f"&&p[1]==="c")));
+  const pool=pool0.map(p=>{const co=COORD[p[0]],km=co&&ref?haversine(ref,co)*1.3:99;return{p,km,fit:pct(p,pr),score:fitRaw(p,pr)-km/(LV.move==="walk"?1.5:4)-(p[1]===cat?0:.6)-(LV.weather==="비"&&!isIndoor(p)?.8:0)}}).sort((a,b)=>b.score-a.score);
+  const same=pool.filter(c=>c.p[1]===cat),other=pool.filter(c=>c.p[1]!==cat);
+  return same.slice(0,4).concat(same.length<3?other.slice(0,3-same.length):[]);
+}
+function pswapHTML(P,i){
+  const list=pswapCands(P,i);
+  if(!list.length)return `<span class="pswl empty">비슷한 후보가 더 없어요. 아래 입력칸에 원하는 곳을 직접 말해 보세요.</span>`;
+  return `<span class="pswl">${list.map(c=>`<span class="pswi"><span><b>${esc(c.p[0])}</b>${c.fit===null?"":`<span class="swfit${c.fit>=70?" hi":c.fit<45?" lo":""}">궁합 ${c.fit}%</span>`}<small>${CAT[c.p[1]]} · ${c.km<99?(c.km<.95?Math.round(c.km*100)*10+"m":c.km.toFixed(1)+"km")+(i>0?" (앞 장소에서)":" (지금 위치에서)"):"거리 정보 없음"}${isIndoor(c.p)?" · 실내":" · 야외"}${INFO[c.p[0]]?" · "+esc(INFO[c.p[0]][1]):""}</small></span><button type="button" data-ppick="${i}|${esc(c.p[0])}">이걸로</button></span>`).join("")}</span>`;
+}
 function bindLive(){
   $("quick").onclick=e=>{const b=e.target.closest("button[data-q]");if(b)ask(b.dataset.q)};
   $("askForm").addEventListener("submit",e=>{e.preventDefault();const v=$("askInput").value.trim();if(!v){toast("AI에게 할 말을 적어 주세요.");return}$("askInput").value="";ask("text",v)});
   $("aiCard").onclick=e=>{const b=e.target.closest("button");if(!b)return;
-    if(b.id==="propApply"){const P=LV.prop;LV.stops=P.stops;LV.move=P.move;LV.prop=null;renderLive();toast("남은 일정을 바꿨어요.")}
-    if(b.id==="propAgain")ask(LV.prop.kind);
-    if(b.id==="propClose"){LV.prop=null;renderLive()}};
+    if(b.id==="propApply"){LV.history=[];LV.pswapSeen=[];const P=LV.prop;LV.stops=P.stops;LV.move=P.move;LV.prop=null;renderLive();toast("남은 일정을 바꿨어요.")}
+    if(b.id==="propAgain")ask(LV.lastAsk?LV.lastAsk.kind:LV.prop.kind,LV.lastAsk?LV.lastAsk.text:"",true);
+    if(b.dataset.pswap!==undefined){const i=+b.dataset.pswap;LV.pswap=LV.pswap===i?null:i;renderLive();return}
+    if(b.dataset.ppick){const [i,n]=[+b.dataset.ppick.split("|")[0],b.dataset.ppick.slice(b.dataset.ppick.indexOf("|")+1)];const P=LV.prop,p=CITY[LV.city].p.find(x=>x[0]===n);if(P&&p){const old=P.stops[i].p[0];LV.pswapSeen=(LV.pswapSeen||[]).concat(old);P.stops[i]=mk(p);LV.pswap=null;renderLive();toast(`${old} 대신 ${n}(으)로 바꿨어요`)}return}
+    if(b.dataset.pdel!==undefined){const P=LV.prop,i=+b.dataset.pdel;if(P){const old=P.stops.splice(i,1)[0];LV.pswap=null;renderLive();toast(`${old.p[0]}은(는) 뺐어요`)}return}
+    if(b.id==="propClose"){LV.prop=null;LV.history=[];LV.pswapSeen=[];LV.pswap=null;renderLive()}};
   $("liveDay").onclick=e=>{const b=e.target.closest("button");if(!b)return;
     if(b.dataset.lday!==undefined){setLiveDay(+b.dataset.lday);LV.prop=null;renderLive();toast(`${+b.dataset.lday+1}일차 일정으로 바꿨어요`)}
     if(b.dataset.restore){LV.stops=LV.missed.concat(LV.stops);LV.missed=[];renderLive();toast("지난 일정을 다시 넣었어요. 지금부터 이어서 계산해요")}};
