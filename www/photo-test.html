@@ -582,7 +582,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 .sphoto b{position:absolute;left:8px;bottom:8px;font:700 11px/1 var(--body);color:#fff;background:rgba(0,0,0,.5);padding:4px 7px;border-radius:99px}
 .phbox{position:fixed;inset:0;z-index:300;background:rgba(8,10,12,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 56px) 12px calc(env(safe-area-inset-bottom,0px) + 24px);box-sizing:border-box}
 .phbox[hidden]{display:none!important}
-.phbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:10px;touch-action:pinch-zoom}
+.phbox img{width:100%;height:auto;max-width:100%;max-height:100%;object-fit:contain;border-radius:10px;touch-action:pinch-zoom}
 .phbox .phcap{color:#fff;font:600 15px/1.5 var(--body);margin-top:12px;text-align:center}
 .phbox .phcap small{display:block;font-weight:500;font-size:12.5px;opacity:.75}
 .phbox .phx{all:unset;cursor:pointer;position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;width:44px;height:44px;border-radius:99px;background:rgba(255,255,255,.16);color:#fff;font-size:26px;line-height:44px;text-align:center}
