@@ -735,6 +735,23 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 .calgrid .cd:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:999px}
 .calsum{margin:4px 0 0;font-size:15px;min-height:1.5em}.calsum small{color:var(--muted)}
 #calOk:disabled{opacity:.45}
+
+/* 추가 요청 */
+.reqbox{display:flex;flex-direction:column;gap:8px;padding:12px 0 4px;border-top:1px solid var(--line);margin-top:4px}
+.reqbox .fl{font-size:13px;color:var(--muted)}.reqbox .fl small{font-weight:400}
+.reqchips{display:flex;flex-wrap:wrap;gap:6px}
+.reqchips button{all:unset;cursor:pointer;padding:7px 12px;border-radius:999px;background:var(--chip);font-size:13.5px;font-weight:700}
+.reqchips button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.reqchips button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#reqInput{font:inherit;font-size:16px;line-height:1.5;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);resize:vertical;min-height:52px}
+#reqInput:focus{outline:2px solid var(--accent);outline-offset:1px}
+.reqban{border-radius:14px;padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:4px;background:var(--paper);border:2px solid var(--accent)}
+.reqban.load{background-image:linear-gradient(100deg,var(--paper) 30%,var(--tint) 50%,var(--paper) 70%);background-size:200% 100%;animation:phshim 1.4s linear infinite}
+.reqban.fail{border-color:var(--stamp)}
+.reqban .rtag{align-self:flex-start;font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;background:var(--accent);color:var(--accent-ink)}
+.reqban p{margin:2px 0;font-size:14.5px;line-height:1.55}
+.reqban .miss{color:var(--stamp);font-weight:600}.reqban .miss a{color:var(--accent);font-weight:800;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){.reqban.load{animation:none}}
 </style>
 
 <div class="onb" id="onb" role="dialog" aria-modal="true" aria-label="앱 사용법" hidden>
@@ -803,6 +820,10 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
       <div class="field" style="cursor:default"><span class="fi"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span><span class="ft"><span class="fl">현지 일정 시간</span><span class="tpair"><label class="tbtn pk"><span id="vDep"></span><input type="time" id="dep" class="ghost" aria-label="첫날 첫 일정 시작 시간"></label><span class="arr">→</span><label class="tbtn pk"><span id="vRet"></span><input type="time" id="ret" class="ghost" aria-label="마지막 날 일정 마무리 시간"></label></span><span class="fhelp">교통편 시간 말고, 여행지에서 첫 일정을 시작하고 마지막 날 일정을 마무리할 시간</span><span class="fhelp thint" id="timeHint" hidden></span></span><span></span></div>
       <button class="field" id="fMe"><span class="fi"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span><span class="ft"><span class="fl">내 여행 성향</span><span class="fv" id="vMe"></span></span><span class="chev">›</span></button>
       <div class="lenseg" id="lens" role="group" aria-label="기간"></div>
+      <div class="reqbox"><span class="fl">추가 요청 <small>(선택)</small></span>
+        <div class="reqchips" id="reqChips" role="group" aria-label="자주 쓰는 요청"></div>
+        <textarea id="reqInput" rows="2" maxlength="150" placeholder="예: 점심엔 게장 맛집, 오후엔 바다 보이는 카페" aria-label="추가 요청"></textarea>
+        <span class="fhelp">적으면 AI가 요청에 맞춰 코스를 짜요. 비워 두면 지금처럼 바로 추천해요.</span></div>
       <button class="go" id="goHome">코스 추천받기</button>
     </div>
     <button class="liverow" data-go="live" id="liveRow"><span class="lri" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><path d="M12 6.5v3.2l2 1.3"/></svg></span><span class="lrt"><b>여행 중이라면 · 여행 중 모드</b><small>비, 웨이팅, 피곤할 때 AI가 남은 일정을 다시 짜 줘요</small></span><span class="lrg" aria-hidden="true">›</span></button>
@@ -848,6 +869,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
       <div class="condtop"><div class="condchips" id="recSum"></div><button class="condbtn" id="condToggle" type="button" aria-expanded="false" aria-controls="condBody">조건 바꾸기</button></div>
       <div class="condbody" id="condBody" hidden><p class="condhelp">아래에서 바꾸고 <b>이 조건으로 다시 추천</b>을 누르면 이 화면에서 바로 새 코스가 나와요.</p><div id="condSlot"></div></div>
     </section>
+    <div id="recReq" aria-live="polite"></div>
     <article class="ticket" id="recTicket" data-w="rec" aria-live="polite"></article>
     <div class="row recbar">
       <button id="again"><b>다른 코스</b><small>같은 조건</small></button>
@@ -1773,6 +1795,72 @@ function calRender(){
   $("calSum").innerHTML=CAL.pick===1?`<b>${dLabel(CAL.a)}</b> 부터 · 이제 <b>돌아오는 날</b>을 눌러 주세요 <small>(당일치기는 같은 날을 한 번 더)</small>`:`<b>${dLabel(CAL.a)}${n?" – "+dLabel(CAL.b):""}</b> · ${n?`${n}박 ${n+1}일`:"당일치기"}`;
   $("calOk").disabled=CAL.pick===1;
 }
+/* 추가 요청: AI가 등록된 장소 안에서 요청을 반영해 코스를 짜요 */
+const REQCHIPS=["현지 음식 위주","실내 위주","덜 걷기","야경 꼭","카페 많이","사진 명소"];
+try{st.req=localStorage.getItem("mbtiReq")||""}catch(e){st.req=""}
+const reqSave=()=>{try{localStorage.setItem("mbtiReq",st.req||"")}catch(e){}};
+const reqParts=()=>String(st.req||"").split(/\s*,\s*/).filter(Boolean);
+function renderReq(){
+  $("reqChips").innerHTML=REQCHIPS.map(c=>`<button type="button" data-rc="${c}" aria-pressed="${reqParts().includes(c)}">${c}</button>`).join("");
+  if(document.activeElement!==$("reqInput"))$("reqInput").value=st.req||"";
+  $("goHome").textContent=!$("condBody").hidden?(st.req?"이 조건과 요청으로 다시 추천":"이 조건으로 다시 추천"):(st.req?"요청 반영해서 코스 추천받기":"코스 추천받기");
+}
+function reqBanner(state,P){
+  const el=$("recReq");if(!el)return;
+  if(state==="none"){el.innerHTML="";return}
+  if(state==="loading"){el.innerHTML=`<div class="reqban load"><b>요청을 반영하는 중이에요</b><span>“${esc(st.req)}”</span><span class="small">AI가 등록된 장소 중에서 골라 코스를 짜고 있어요. 잠시만요.</span></div>`;return}
+  if(state==="fail"){el.innerHTML=`<div class="reqban fail"><b>요청을 반영하지 못했어요</b><span class="small">${esc(P||"AI 연결이 안 돼서")} 기본 추천을 보여 드려요. 잠시 뒤 <b>다른 코스</b>를 눌러 다시 시도해 보세요.</span></div>`;return}
+  const city=P.city,hint=P.aiHint||(city+" "+(st.req||"").split(",")[0]);
+  const url=isKR(city)?`https://map.kakao.com/link/search/${encodeURIComponent(hint)}`:`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hint)}`;
+  el.innerHTML=`<div class="reqban ok"><span class="rtag">AI 요청 반영</span><b>“${esc(P.req)}”</b><p>${esc(P.aiMsg||"")}</p>${P.aiMissing?`<p class="miss">${esc(P.aiMissing)} <a href="${url}" target="_blank" rel="noopener">${mapApp(city)}에서 ‘${esc(hint)}’ 찾기 ›</a></p><p class="small">지도에서 찾은 가게는 <b>고치고 저장</b> → <b>장소 추가</b>에서 이름을 직접 넣을 수 있어요.</p>`:""}<button type="button" class="linkbtn" id="reqClear">요청 지우고 기본 추천 보기</button></div>`;
+}
+async function aiRec(prev){
+  const base=st.rec,req=(st.req||"").trim();if(!req)return;
+  reqBanner("loading");
+  try{
+    const sm=await getSample();if(!sm)throw {msg:"AI를 쓸 수 없어서"};
+    const pr=profile(),n=base.days.length;
+    const cand=CITY[base.city].p.map(p=>{const I=INFO[p[0]];return `${p[0]} | ${CAT[p[1]]}${I?` | ${I[0]} | ${I[1]} | ${I[2]}`:""} | ${isIndoor(p)?"실내":"야외"} | ${p[5]}`}).join("\n");
+    const prompt=`너는 여행 코스 플래너야. 사용자의 추가 요청을 최우선으로 반영해서 코스를 짜.
+
+[여행 조건]
+도시: ${base.city} / 날짜: ${rangeLabel(base.date,base.len)} (${n}일) / 기간: ${base.len}
+현지 일정 시간: 첫날 ${fmt(base.dep)} 시작, 마지막 날 ${fmt(base.ret)} 마무리 (중간 날은 09:30~21:30)
+여행 성향: ${pr.code} (${describe(pr)})
+
+[사용자 추가 요청]
+${req}
+
+[기본 추천 코스]
+${base.days.map((d,i)=>`${i+1}일차: ${d.map(s=>`${s.p[0]}(${CAT[s.cat]||"기타"})`).join(" → ")}`).join("\n")}
+${prev?`
+[직전에 보여 준 코스 - 이번엔 요청은 지키되 다른 장소 조합으로]
+${prev.map((d,i)=>`${i+1}일차: ${d.join(" → ")}`).join("\n")}
+`:""}
+[후보 장소 목록] 이름 | 분류 | 위치 | 대표 메뉴 | 가격 | 실내/야외 | 특징
+${cand}
+
+규칙:
+- days에는 [후보 장소 목록]의 이름을 글자 그대로만 써. 없는 가게를 지어내지 마.
+- days는 정확히 ${n}개(일차별 배열). 하루 3~6곳, 같은 장소는 한 번만.
+- 점심(11:30~13:30)과 저녁(17:30~19:30) 시간대에 식사를 넣고, 요청에 식사 조건이 있으면 그 시간대에 맞는 곳을 넣어.
+- 이동이 짧은 순서로 동선을 짜.
+- 요청에 맞는 장소가 후보에 없거나 부족하면 missing에 한 문장으로 솔직하게 적고, searchHint에 지도 검색어를 적어 (예: "${base.city} 게장 맛집"). 충분하면 둘 다 빈 문자열.
+- message는 존댓말 2문장. 요청을 어떻게 반영했는지 구체적인 가게 이름과 함께.
+
+JSON으로만 답해:
+{"days":[["장소 이름", ...], ...],"message":"...","missing":"","searchHint":""}`;
+    const out=await sm.json(prompt,{modelTier:"default",cache:false});
+    if(!out||!Array.isArray(out.days))throw {msg:"AI 답을 읽지 못해서"};
+    const all=new Map(CITY[base.city].p.map(p=>[p[0],p])),used=new Set();
+    const days=base.days.map((d,i)=>{const names=(out.days[i]||[]).filter(x=>typeof x==="string"&&all.has(x)&&!used.has(x));names.forEach(x=>used.add(x));
+      return names.length?names.slice(0,6).map(x=>({cat:all.get(x)[1],h:0,p:all.get(x)})):d.map(s=>Object.assign({},s))});
+    const P=Object.assign({},base,{days,req,aiMsg:String(out.message||"").slice(0,300),aiMissing:String(out.missing||"").slice(0,160),aiHint:String(out.searchHint||"").slice(0,40),no:Math.floor(Math.random()*9000)+1000});
+    ensureWin(P);P.days.forEach((day,d)=>{const S=P.win[d][0];let food=0;day.forEach((s,i)=>{let t=i===0?S:(()=>{const q=day[i-1];return q.h+stay(q.cat)+((leg(q,s,P.city)||{min:20}).min)/60})();
+      if(s.cat==="f"){food++;t=Math.max(t,food===1?(S<11.5?11.5:t):17.5)}if(s.cat==="n")t=Math.max(t,18.5);s.h=r10(t)})});
+    st.rec=P;renderTicket("rec",true);renderRecSum();reqBanner("ok",P);
+  }catch(e){reqBanner("fail",e&&e.msg?e.msg:e&&e.code==="rate_limited"?"오늘 AI 사용량이 많아서":"AI 연결이 안 돼서")}
+}
 function renderHome(){
   const pr=profile();renderAttend();
   $("meChip").textContent=pr.code;
@@ -1788,7 +1876,7 @@ function renderHome(){
   $("lens").innerHTML=`<button id="len-half" data-l="반나절" aria-pressed="${st.len==="반나절"}">반나절</button><button id="len-day" data-l="하루" aria-pressed="${st.len==="하루"}">당일</button><button id="len-stay" data-l="${lenOf(nn||1)}" aria-pressed="${nn>0}">숙박</button>`
     +(nn?`<div class="nights" role="group" aria-label="숙박 일수"><button id="nMinus" data-n="${nn-1}" ${nn<=1?"disabled":""} aria-label="하루 줄이기">−</button><b>${st.len}</b><button id="nPlus" data-n="${nn+1}" ${nn>=MAXN?"disabled":""} aria-label="하루 늘리기">+</button></div>`:"");
   $("picks").innerHTML=PICKS.map(c=>`<button class="mini" data-pick="${c}" style="background:${grad(c)}"><span class="cc">${COUNTRY[CITY[c].c][0]}</span><span class="nt">${esc(CITY[c].nat)}</span><span class="kn">${c}</span></button>`).join("");
-  renderRecent();renderTripNow();
+  renderRecent();renderTripNow();renderReq();
 }
 function renderRecent(){
   const box=$("recentBox");
@@ -1815,7 +1903,10 @@ $("fMe").onclick=()=>go("test");
   st[k]=v;syncLen();savePrefs();renderHome();
 }));
 $("meChip").onclick=()=>go("test");
-$("goHome").onclick=()=>{const inRec=!$("condBody").hidden;st.rec=build();renderTicket("rec",true);if(inRec){condClose(false);renderRecSum();$("recCond").scrollIntoView({behavior:"smooth",block:"start"});toast("바꾼 조건으로 새 코스를 짰어요")}else go("rec")};
+$("goHome").onclick=()=>{const inRec=!$("condBody").hidden;st.rec=build();renderTicket("rec",true);reqBanner("none");if(inRec){condClose(false);renderRecSum();$("recCond").scrollIntoView({behavior:"smooth",block:"start"});if(!st.req)toast("바꾼 조건으로 새 코스를 짰어요")}else go("rec");if(st.req)aiRec()};
+$("reqChips").onclick=e=>{const b=e.target.closest("button[data-rc]");if(!b)return;const a=reqParts(),c=b.dataset.rc,i=a.indexOf(c);if(i>=0)a.splice(i,1);else a.push(c);st.req=a.join(", ");reqSave();renderReq()};
+$("reqInput").addEventListener("input",e=>{st.req=e.target.value.replace(/\s+/g," ").trimStart();reqSave();renderReq()});
+document.addEventListener("click",e=>{if(e.target&&e.target.id==="reqClear"){st.req="";reqSave();st.rec=build();renderTicket("rec",true);renderRecSum();reqBanner("none");renderReq();toast("요청을 지우고 기본 추천으로 바꿨어요")}});
 $("picks").onclick=e=>{const b=e.target.closest("button[data-pick]");if(!b)return;setCity(b.dataset.pick);st.rec=build();renderTicket("rec",true);go("rec")};
 function setCity(c){st.city=c;st.country=CITY[c].c;savePrefs()}
 /* 여행지 선택 시트 */
@@ -1867,12 +1958,12 @@ function renderRecSum(){
 }
 const condHome=document.querySelector("#pg-home .search");
 const condMark=document.createComment("search-home");condHome.parentNode.insertBefore(condMark,condHome);
-function condOpen(){if(!$("condBody").hidden)return;$("condSlot").appendChild(condHome);$("condBody").hidden=false;$("pg-rec").classList.add("condopen");$("condToggle").setAttribute("aria-expanded","true");$("condToggle").textContent="접기";$("goHome").textContent="이 조건으로 다시 추천";renderHome();}
-function condClose(rebuild){if($("condBody").hidden)return;condMark.parentNode.insertBefore(condHome,condMark.nextSibling);$("condBody").hidden=true;$("pg-rec").classList.remove("condopen");$("condToggle").setAttribute("aria-expanded","false");$("condToggle").textContent="조건 바꾸기";$("goHome").textContent="코스 추천받기";
+function condOpen(){if(!$("condBody").hidden)return;$("condSlot").appendChild(condHome);$("condBody").hidden=false;$("pg-rec").classList.add("condopen");$("condToggle").setAttribute("aria-expanded","true");$("condToggle").textContent="접기";renderHome();}
+function condClose(rebuild){if($("condBody").hidden)return;condMark.parentNode.insertBefore(condHome,condMark.nextSibling);$("condBody").hidden=true;$("pg-rec").classList.remove("condopen");$("condToggle").setAttribute("aria-expanded","false");$("condToggle").textContent="조건 바꾸기";renderReq();
   if(rebuild&&st.page==="rec"&&recStale()){st.rec=build();renderTicket("rec",true);renderRecSum();toast("바꾼 조건으로 새 코스를 짰어요")}}
 $("condToggle").onclick=()=>{$("condBody").hidden?condOpen():condClose(true)};
 $("recSum").onclick=()=>condOpen();
-$("again").onclick=()=>{st.rec=build();renderTicket("rec");renderRecSum();$("recCond").scrollIntoView({behavior:"smooth",block:"start"});toast("같은 조건으로 다른 코스를 뽑았어요")};
+$("again").onclick=()=>{const prev=st.rec&&st.rec.req?st.rec.days.map(d=>d.map(s=>s.p[0])):null;st.rec=build();if(st.req){renderTicket("rec");renderRecSum();aiRec(prev);$("recCond").scrollIntoView({behavior:"smooth",block:"start"});return}reqBanner("none");renderTicket("rec");renderRecSum();$("recCond").scrollIntoView({behavior:"smooth",block:"start"});toast("같은 조건으로 다른 코스를 뽑았어요")};
 $("copyRec").onclick=()=>copyPlan(st.rec);
 let toPlanT;
 $("toPlan").onclick=()=>{
