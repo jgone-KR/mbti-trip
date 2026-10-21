@@ -85,8 +85,16 @@
     ai: async function (prompt) {
       var r = await fetch(U + "/functions/v1/ai-replan", { method: "POST", headers: await headers(), body: JSON.stringify({ prompt: prompt }) });
       var j = await r.json().catch(function () { return {}; });
-      if (!r.ok) throw { code: r.status === 429 ? "rate_limited" : "unavailable", message: j && j.error };
+      if (j && typeof j.used === "number") { try { window.dispatchEvent(new CustomEvent("aiusage", { detail: { used: j.used, limit: j.limit } })); } catch (e) {} }
+      if (!r.ok) throw { code: j && j.error === "busy" ? "busy" : r.status === 429 ? "rate_limited" : "unavailable", message: j && j.error };
       return j.result;
+    },
+    // 오늘 남은 AI 횟수만 확인 (횟수 차감 없음)
+    aiUsage: async function () {
+      var r = await fetch(U + "/functions/v1/ai-replan", { method: "POST", headers: await headers(), body: JSON.stringify({ peek: true }) });
+      var j = await r.json().catch(function () { return {}; });
+      if (!r.ok || typeof j.used !== "number") throw { code: "unavailable" };
+      return { used: j.used, limit: j.limit };
     }
   };
 })();

@@ -752,6 +752,19 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 .reqban p{margin:2px 0;font-size:14.5px;line-height:1.55}
 .reqban .miss{color:var(--stamp);font-weight:600}.reqban .miss a{color:var(--accent);font-weight:800;white-space:nowrap}
 @media (prefers-reduced-motion:reduce){.reqban.load{animation:none}}
+
+/* AI 사용 횟수 */
+.aiq{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:6px;align-self:flex-start;padding:5px 10px;border-radius:999px;background:var(--chip);color:var(--ink);font-size:12.5px;font-weight:600;line-height:1.3;white-space:nowrap}
+.aiq .d{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none}
+.aiq.low .d{background:var(--gold)}.aiq.out .d{background:var(--stamp)}
+.aiq .i{width:15px;height:15px;border-radius:50%;border:1.3px solid var(--muted);color:var(--muted);font-size:10px;display:inline-grid;place-items:center;font-weight:700}
+.aiqrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:8px 0 2px}
+.aiqrow .small{margin:0}
+.aiuse h3{font-size:14px;margin:14px 0 6px}
+.aiuse ul{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px;line-height:1.5}
+.aiuse .big{font-size:22px;font-weight:800;margin:4px 0 2px}
+.aiuse .bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:6px 0 4px}
+.aiuse .bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
 </style>
 
 <div class="onb" id="onb" role="dialog" aria-modal="true" aria-label="앱 사용법" hidden>
@@ -823,7 +836,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
       <div class="reqbox"><span class="fl">추가 요청 <small>(선택)</small></span>
         <div class="reqchips" id="reqChips" role="group" aria-label="자주 쓰는 요청"></div>
         <textarea id="reqInput" rows="2" maxlength="150" placeholder="예: 점심엔 게장 맛집, 오후엔 바다 보이는 카페" aria-label="추가 요청"></textarea>
-        <span class="fhelp">적으면 AI가 요청에 맞춰 코스를 짜요. 비워 두면 지금처럼 바로 추천해요.</span></div>
+        <span class="fhelp">적으면 AI가 요청에 맞춰 코스를 짜요(AI 1회). 비워 두면 지금처럼 바로 추천해요(횟수 안 씀).</span><button type="button" class="aiq" data-aiq></button></div>
       <button class="go" id="goHome">코스 추천받기</button>
     </div>
     <button class="liverow" data-go="live" id="liveRow"><span class="lri" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><path d="M12 6.5v3.2l2 1.3"/></svg></span><span class="lrt"><b>여행 중이라면 · 여행 중 모드</b><small>비, 웨이팅, 피곤할 때 AI가 남은 일정을 다시 짜 줘요</small></span><span class="lrg" aria-hidden="true">›</span></button>
@@ -931,6 +944,8 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
         <li>계획형(J)은 랜덤 폭이 작아 정확한 시간표로, 즉흥형(P)은 랜덤 폭이 커서 뽑을 때마다 크게 달라지고 시간도 느슨하게 표시돼요.</li>
         <li>장소 옆 '궁합 %'는 랜덤을 뺀 궁합 점수예요. 태그는 내 성향과 강하게 맞는 축이에요.</li>
       </ol>
+      <h3>AI 사용 횟수</h3>
+      <div class="aiuse" data-aiuse></div>
       <h3>설문으로 검사했을 때</h3>
       <ul>
         <li>Q1~Q3은 MBTI의 세 축을 대신해요. "상관없어요"를 고르면 그 축은 점수에 반영하지 않아요(X로 표시).</li>
@@ -978,6 +993,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
     <div class="aicard" id="aiCard" aria-live="polite"></div>
     <div class="quick" id="quick"></div>
     <form class="ask" id="askForm"><input id="askInput" maxlength="120" placeholder="AI에게 직접 말하기 (예: 아이가 졸려해요)" aria-label="AI에게 할 말"><button type="submit">보내기</button></form>
+    <div class="aiqrow"><button type="button" class="aiq" data-aiq></button><span class="small">상황 버튼·직접 말하기·다시 추천이 1회씩 써요</span></div>
     <div class="sech"><h2>남은 일정</h2><button id="liveToPlan">코스 짜기로 보내기</button></div>
     <div id="liveDay"></div>
     <ol class="ltl" id="liveTl"></ol>
@@ -1067,6 +1083,12 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
     <div class="calgrid" id="calGrid"></div>
     <p class="calsum" id="calSum" aria-live="polite"></p>
     <button class="go" type="button" id="calOk">이 날짜로 정하기</button>
+  </div>
+</div>
+<div class="sheet" id="aiSheet" role="dialog" aria-modal="true" aria-labelledby="aiSheetH" hidden>
+  <div class="in">
+    <div class="sh"><h2 id="aiSheetH">AI 사용 횟수</h2><button class="sclose">닫기</button></div>
+    <div class="scrollbox aiuse" data-aiuse></div>
   </div>
 </div>
 <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
@@ -1739,6 +1761,7 @@ function go(p,opts={}){
   if(p==="view")renderView();
   if(p==="wallet")renderWallet();
   if(p==="live")renderLive();
+  if(p==="live"||p==="how"||p==="home")peekAi();
   try{history.replaceState(null,"","#"+p)}catch(e){}
   if(!opts.keepScroll)window.scrollTo(0,0);
 }
@@ -1748,6 +1771,40 @@ document.addEventListener("click",e=>{
 });
 document.querySelectorAll(".back").forEach(b=>b.onclick=()=>go(st.hist.pop()||"home",{push:false}));
 
+
+/* ---------- AI 사용 횟수 ---------- */
+// 서버(ai-replan)가 알려 준 오늘 사용량. 미리보기(Claude 안)에서는 서버가 없어서 횟수를 세지 않아요.
+const AIU={used:null,limit:30,at:0};
+const aiLeft=()=>AIU.used==null?null:Math.max(0,AIU.limit-AIU.used);
+function aiUseHTML(){
+  const L=aiLeft(),srv=typeof isTB==="function"&&isTB();
+  const top=!srv?`<p class="small">이 미리보기에서는 횟수를 세지 않아요. 설치한 앱에서는 아래 규칙대로 하루 ${AIU.limit}회까지 쓸 수 있어요.</p>`
+    :L==null?`<p class="small">오늘 남은 횟수를 불러오는 중이에요…</p>`
+    :`<p class="big">오늘 ${L}회 남았어요</p><div class="bar"><i style="width:${Math.round(L/AIU.limit*100)}%"></i></div><p class="small">하루 ${AIU.limit}회 중 ${AIU.used}회 사용 · 한국 시간 자정에 다시 ${AIU.limit}회로 채워져요</p>`;
+  return top+`
+  <h3>AI를 1회씩 쓰는 기능</h3>
+  <ul><li>여행 중 모드의 상황 버튼 (비가 와요, 웨이팅이 길어요, 피곤해요 등)</li><li>AI에게 직접 말하기</li><li>AI 제안의 다시 추천 · 이 조건으로 다시 짜기</li><li>추가 요청을 적고 코스 추천받기 · 요청이 있을 때 다른 코스 보기</li></ul>
+  <h3>횟수를 쓰지 않는 기능</h3>
+  <ul><li>기본 코스 추천과 다른 코스 보기 (추가 요청이 없을 때)</li><li>이것만 바꾸기 · 다른 곳 · 빼기 · 순서 바꾸기 등 편집</li><li>길찾기, 사진, 저장, 공유</li></ul>
+  <h3>횟수를 다 쓰면</h3>
+  <ul><li>앱이 멈추지 않고, AI 대신 자동 추천(점수 계산)으로 바로 보여 드려요.</li><li>AI 쪽 오류로 답을 못 받으면 그 1회는 차감되지 않아요.</li><li>횟수는 한 사람(이 기기 계정)마다 따로 세요.</li></ul>`;
+}
+function renderAiq(){
+  const L=aiLeft(),srv=typeof isTB==="function"&&isTB();
+  const tx=!srv?`AI 하루 ${AIU.limit}회`:L==null?"AI 사용 횟수":L===0?"오늘 AI 횟수를 다 썼어요":`오늘 AI ${L}/${AIU.limit}회 남음`;
+  const cls=!srv||L==null?"":L===0?"out":L<=5?"low":"";
+  document.querySelectorAll("[data-aiq]").forEach(b=>{b.className="aiq "+cls;b.innerHTML=`<span class="d" aria-hidden="true"></span>${tx}<span class="i" aria-hidden="true">?</span>`;b.setAttribute("aria-label",tx+", 자세히 보기")});
+  document.querySelectorAll("[data-aiuse]").forEach(d=>d.innerHTML=aiUseHTML());
+}
+function setAiUsage(u){if(u&&typeof u.used==="number"){AIU.used=u.used;if(u.limit)AIU.limit=u.limit;AIU.at=Date.now()}renderAiq()}
+async function peekAi(force){
+  if(!(TB&&TB.aiUsage&&isTB()))return renderAiq();
+  if(!force&&AIU.at&&Date.now()-AIU.at<60e3&&new Date(AIU.at+9*3600e3).getUTCDate()===new Date(Date.now()+9*3600e3).getUTCDate())return renderAiq();
+  try{setAiUsage(await TB.aiUsage())}catch(e){renderAiq()}
+}
+window.addEventListener("aiusage",e=>setAiUsage(e.detail));
+document.addEventListener("click",e=>{if(e.target.closest("[data-aiq]")){renderAiq();openSheet("aiSheet");peekAi()}});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)peekAi()});
 /* ---------- 바텀시트 ---------- */
 let lastFocus=null;
 function openSheet(id){st.openSheet=id;lastFocus=document.activeElement;$("scrim").hidden=false;$(id).hidden=false;$(id).querySelector(".sclose").focus()}
@@ -1859,7 +1916,7 @@ JSON으로만 답해:
     ensureWin(P);P.days.forEach((day,d)=>{const S=P.win[d][0];let food=0;day.forEach((s,i)=>{let t=i===0?S:(()=>{const q=day[i-1];return q.h+stay(q.cat)+((leg(q,s,P.city)||{min:20}).min)/60})();
       if(s.cat==="f"){food++;t=Math.max(t,food===1?(S<11.5?11.5:t):17.5)}if(s.cat==="n")t=Math.max(t,18.5);s.h=r10(t)})});
     st.rec=P;renderTicket("rec",true);renderRecSum();reqBanner("ok",P);
-  }catch(e){reqBanner("fail",e&&e.msg?e.msg:e&&e.code==="rate_limited"?"오늘 AI 사용량이 많아서":"AI 연결이 안 돼서")}
+  }catch(e){reqBanner("fail",e&&e.msg?e.msg:e&&e.code==="rate_limited"?`오늘 AI ${AIU.limit}회를 다 써서`:e&&e.code==="busy"?"AI가 잠시 바빠서":"AI 연결이 안 돼서")}
 }
 function renderHome(){
   const pr=profile();renderAttend();
@@ -2154,6 +2211,7 @@ async function initStore(){
       const local=loadLocal();
       if(!saved.length&&local.length){for(const r of local){try{const P=JSON.parse(r.json);await TB.savePlan({id:r.id,name:r.name,city:r.city,trip_len:r.len,trip_date:r.date||"",code:r.code,stops:r.stops,json:r.json,preview:previewOf(P),updated_at:new Date(r.updatedAt||Date.now()).toISOString()})}catch(e){}}await tbPlans();toast("이 기기에 있던 플랜을 서버 계정으로 옮겼어요.")}
       applyWallet(await TB.wallet());
+      peekAi(true);
       await tbCommunity();
     }catch(e){store={kind:"local"};comState="off";refreshCommunity();$("where").textContent="서버에 연결하지 못해서 이 기기에 저장돼요";toast("서버에 연결하지 못했어요. "+tbErr(e))}
     return;
@@ -2568,7 +2626,7 @@ async function ask(kind,text="",again=false){
   LV.prop=Object.assign({},draft,{loading:true});LV.busy=true;renderLive();
   let prop=draft;
   try{const ai=await aiProposal(kind==="text"?draft.kind:kind,text,draft);if(ai)prop=ai}
-  catch(e){prop=Object.assign({},draft,{aiFail:e&&e.code==="not_granted"?"AI 사용을 허용하지 않아서 자동 추천을 보여 드려요.":e&&e.code==="rate_limited"?"AI 요청이 많아 잠시 자동 추천을 보여 드려요.":"AI 연결이 안 돼서 자동 추천을 보여 드려요."})}
+  catch(e){prop=Object.assign({},draft,{aiFail:e&&e.code==="not_granted"?"AI 사용을 허용하지 않아서 자동 추천을 보여 드려요.":e&&e.code==="rate_limited"?`오늘 AI ${AIU.limit}회를 다 써서 자동 추천을 보여 드려요. 한국 시간 자정에 다시 채워져요.`:e&&e.code==="busy"?"AI가 잠시 바빠서 자동 추천을 보여 드려요. 이번 횟수는 차감되지 않았어요.":"AI 연결이 안 돼서 자동 추천을 보여 드려요."})}
   const last=(LV.history||[]).slice(-1)[0];
   if(again&&last&&prop.stops.map(x=>x.p[0]).join("|")===last.join("|"))prop=Object.assign({},prop,{aiFail:(prop.aiFail?prop.aiFail+" ":"")+"조건에 맞는 다른 조합이 거의 없어서 비슷한 추천이 나왔어요. 바꾸고 싶은 곳만 '이것만 바꾸기'를 눌러 보세요."});
   LV.prop=prop;LV.busy=false;renderLive();
@@ -3026,6 +3084,7 @@ document.addEventListener("keydown",e=>{if(!TS)return;if(e.key==="Escape"){e.pre
 /* 화면에 처음 들어가면 자동으로 */
 (function(){const g=window.go;if(typeof g!=="function")return;window.go=function(p,o){const r=g.apply(this,arguments);setTimeout(()=>{if(st.page===p&&!TS)tourStart(tourKey(p),false)},500);return r}})();
 window.resetTours=()=>{try{localStorage.removeItem(TKEY)}catch(e){}};
+renderAiq();
 </script>
 </body>
 </html>

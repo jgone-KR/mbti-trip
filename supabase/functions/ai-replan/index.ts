@@ -97,16 +97,21 @@ Deno.serve(async (req) => {
     if (!user) return json({ error: "unauthorized" }, 401);
 
     const body = await req.json().catch(() => ({}));
-    const prompt = body?.prompt;
-    if (typeof prompt !== "string" || prompt.length < 20 || prompt.length > 15000) return json({ error: "bad_request" }, 400);
 
     // 1인당 하루 사용 횟수 제한 (한국 날짜 기준)
     const day = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
     const limit = Number(Deno.env.get("AI_DAILY_LIMIT") ?? "30");
     const { data: used } = await admin.from("ai_usage").select("count").eq("user_id", user.id).eq("day", day).maybeSingle();
     const count = used?.count ?? 0;
-    if (count >= limit) return json({ error: "rate_limited" }, 429);
+    // 앱이 '오늘 남은 AI 횟수'만 물어볼 때 (횟수 차감 없음)
+    if (body?.peek) return json({ used: count, limit });
+
+    const prompt = body?.prompt;
+    if (typeof prompt !== "string" || prompt.length < 20 || prompt.length > 15000) return json({ error: "bad_request" }, 400);
+    if (count >= limit) return json({ error: "rate_limited", used: count, limit }, 429);
     await admin.from("ai_usage").upsert({ user_id: user.id, day, count: count + 1 });
+    // AI 쪽 문제로 답을 못 받으면 횟수를 되돌려요
+    const refund = () => admin.from("ai_usage").upsert({ user_id: user.id, day, count });
 
     let text: string;
     try {
@@ -114,14 +119,17 @@ Deno.serve(async (req) => {
     } catch (e) {
       if (e instanceof UpstreamError) {
         console.error(provider, "error", e.status, e.detail.slice(0, 500));
+        await refund();
         // 무료 한도 초과(429)면 앱이 '잠시 자동 추천'으로 안내해요
-        return json({ error: e.status === 429 ? "rate_limited" : "upstream", status: e.status }, e.status === 429 ? 429 : 502);
+        return json({ error: e.status === 429 ? "busy" : "upstream", status: e.status, used: count, limit }, e.status === 429 ? 429 : 502);
       }
       throw e;
     }
     const m = text.match(/\{[\s\S]*\}/);
-    if (!m) return json({ error: "invalid_json" }, 502);
-    return json({ result: JSON.parse(m[0]), provider });
+    if (!m) { await refund(); return json({ error: "invalid_json", used: count, limit }, 502); }
+    let result;
+    try { result = JSON.parse(m[0]); } catch { await refund(); return json({ error: "invalid_json", used: count, limit }, 502); }
+    return json({ result, provider, used: count + 1, limit });
   } catch (e) {
     console.error(e);
     return json({ error: "server" }, 500);
