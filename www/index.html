@@ -221,6 +221,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,la
 .balance{background:var(--paper);border-radius:16px;padding:18px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
 .balance .num{font-family:var(--body);font-variant-numeric:tabular-nums;font-size:40px;font-weight:600;line-height:1;color:var(--gold);display:flex;align-items:center;gap:8px;font-variant-numeric:tabular-nums}
 .balance .num .coin{width:30px;height:30px}
+.balance{flex-wrap:wrap}.balance>div{flex:none}.balance .num{white-space:nowrap}.balance .num .coin{flex:none}#balSub{flex:1 1 140px;min-width:0;text-align:right}
 .stamps{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .stamp{aspect-ratio:1;border-radius:10px;border:1.5px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;color:var(--muted);line-height:1.2}
 .stamp b{font-family:var(--body);font-variant-numeric:tabular-nums;font-size:14px;color:var(--ink)}
