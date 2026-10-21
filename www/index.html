@@ -615,6 +615,14 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 .phbox .phx:focus-visible{outline:2px solid #fff}
 @keyframes phshim{to{background-position:-200% 0}}
 @media (prefers-reduced-motion:reduce){.sphoto.load{animation:none}}
+
+.ctxline .kst{font-size:12.5px;font-weight:600;color:var(--muted);margin-left:6px}
+.ldays{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px}
+.ldays button{all:unset;cursor:pointer;flex:none;padding:7px 12px;border-radius:999px;background:var(--chip);font-size:14px;font-weight:700}
+.ldays button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.lday{font-size:14px;color:var(--muted);margin:0 0 8px}.lday b{color:var(--ink)}
+.lmiss{font-size:13.5px;color:var(--muted);background:var(--paper);border:1px dashed var(--line);border-radius:10px;padding:8px 10px;margin:0 0 10px;line-height:1.5}
+.lmiss button{all:unset;cursor:pointer;color:var(--accent);font-weight:800;margin-left:4px}
 </style>
 
 <div class="onb" id="onb" role="dialog" aria-modal="true" aria-label="앱 사용법" hidden>
@@ -826,6 +834,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
     <div class="quick" id="quick"></div>
     <form class="ask" id="askForm"><input id="askInput" maxlength="120" placeholder="AI에게 직접 말하기 (예: 아이가 졸려해요)" aria-label="AI에게 할 말"><button type="submit">보내기</button></form>
     <div class="sech"><h2>남은 일정</h2><button id="liveToPlan">코스 짜기로 보내기</button></div>
+    <div id="liveDay"></div>
     <ol class="ltl" id="liveTl"></ol>
   </section>
 
@@ -2160,9 +2169,9 @@ function legFrom(from,s,move){
   return{mode:T[0],kind:T[3]?"car":"transit",min:up5(T[2]+km/(km>=25?45:T[1])*60),km};
 }
 // 지금 시각·위치부터 순서대로 도착 시간 계산
-function flow(stops,move=LV.move){
-  let t=nowH(),from=locCoord(),fromName=locLabel();
-  return stops.map(s=>{const L=legFrom(from,s,move);t+=(L?L.min:20)/60;const arr=t;t+=stay(s.cat);const o=fromName;from=coordOf(s)||from;fromName=s.p[0];return{s,L,arr,end:t,from:o}});
+function flow(stops,move=LV.move,startH){
+  let t=startH!=null?startH:nowH(),from=locCoord(),fromName=locLabel();
+  return stops.map(s=>{const L=legFrom(from,s,move);t+=(L?L.min:20)/60;const reach=t,arr=s.h&&s.h>reach?s.h:reach;t=arr+stay(s.cat);const o=fromName;from=coordOf(s)||from;fromName=s.p[0];return{s,L,arr,reach,wait:arr-reach,end:t,from:o}});
 }
 function candidates(){
   const used=new Set(LV.stops.map(s=>s.p[0]).concat(LV.visited)),pr=profile(),here=locCoord();
@@ -2297,8 +2306,16 @@ function loadLiveFrom(src){
   if(src==="draft"&&st.draft)P=st.draft;
   else if(src&&src.startsWith("saved:")){const r=saved.find(x=>"saved:"+x.id===src);if(r)try{P=JSON.parse(r.json)}catch(e){}}
   if(!P){if(recStale())st.rec=build();P=st.rec;src="rec"}
-  LV.src=src;LV.city=P.city;LV.stops=clone(P.days[0]||[]);LV.visited=[];LV.prop=null;LV.loc="숙소";
+  LV.src=src;LV.city=P.city;LV.plan=P;LV.visited=[];LV.prop=null;LV.loc="숙소";
+  const n=P.days.length||1,diff=P.date?Math.round((parseD(cityParts(P.city).iso)-parseD(P.date))/864e5):null;
+  LV.onTrip=diff!==null&&diff>=0&&diff<n;LV.todayIdx=LV.onTrip?diff:(diff!==null&&diff>=n?n-1:0);
+  setLiveDay(LV.todayIdx);
   if(LV.hotel&&!CITY[LV.city].p.some(p=>p[0]===LV.hotel))LV.hotel=null;
+}
+function setLiveDay(d){
+  const P=LV.plan;if(!P)return;LV.day=d;const all=clone(P.days[d]||[]);
+  if(LV.onTrip&&d===LV.todayIdx&&LV.timeMode==="real"){const now=nowH();LV.missed=all.filter(x=>x.h&&x.h+stay(x.cat)<=now);LV.stops=all.filter(x=>!(x.h&&x.h+stay(x.cat)<=now))}
+  else{LV.missed=[];LV.stops=all}
 }
 function liveSources(){
   const o=[["rec",`추천 코스 · ${st.city} ${st.len}`]];
@@ -2309,7 +2326,8 @@ function liveSources(){
 function renderLive(){
   if(!LV.city)loadLiveFrom(st.draft?"draft":"rec");
   const now=nowH(),sun=sunsetH(LV.city),toSun=sun==null?null:Math.round((sun-now)*60);
-  $("ctxLine").innerHTML=`<b>${fmt(now)}</b><span>/</span><b>${esc(LV.city)}</b><span>/</span><b>${LV.who}</b><span>/</span><b>${MOVES[LV.move]}</b>`;
+  const kr=CITYTZ[LV.city]==="Asia/Seoul"||!CITYTZ[LV.city],kNow=cityParts("서울").h;
+  $("ctxLine").innerHTML=`<b>${LV.timeMode==="custom"?"정한 시각 ":kr?"":"현지 "}${fmt(now)}</b>${!kr&&LV.timeMode!=="custom"?`<small class="kst">한국 ${fmt(kNow)}</small>`:""}<span>/</span><b>${esc(LV.city)}</b><span>/</span><b>${LV.who}</b><span>/</span><b>${MOVES[LV.move]}</b>`;
   const chips=[];
   if(toSun!=null)chips.push(toSun>0&&toSun<=120?`<span class="lchip sun">일몰까지 ${toSun}분</span>`:toSun>0?`<span class="lchip">일몰 ${fmt(sun)}</span>`:`<span class="lchip">해가 졌어요 · 야경 시간</span>`);
   chips.push(`<span class="lchip ${LV.weather==="비"?"rain":""}">날씨 ${LV.weather}</span>`);
@@ -2335,12 +2353,17 @@ function renderLive(){
   $("aiCard").innerHTML=card;
   $("quick").innerHTML=QUICK.map(([k,l])=>`<button data-q="${k}" ${LV.busy?"disabled":""}>${l}</button>`).join("");
   // 남은 일정
-  const fl=flow(LV.stops);
+  const LP=LV.plan,nd=LP?LP.days.length:1,preview=!(LV.onTrip&&LV.day===LV.todayIdx)&&LV.timeMode==="real"&&LV.stops[0]&&LV.stops[0].h;
+  const fl=flow(LV.stops,LV.move,preview?LV.stops[0].h-.5:undefined);
+  const dayTabs=nd>1?`<div class="ldays" role="group" aria-label="일차 고르기">${LP.days.map((_,d)=>`<button data-lday="${d}" aria-pressed="${d===LV.day}">${d+1}일차${LV.onTrip&&d===LV.todayIdx?" (오늘)":""}</button>`).join("")}</div>`:"";
+  const dayNote=LP?(LV.onTrip&&LV.day===LV.todayIdx?`오늘은 <b>${LV.day+1}일차 · ${dLabel(LP.date,LV.day)}</b> 일정이에요.`:LV.onTrip?`<b>${LV.day+1}일차 · ${dLabel(LP.date,LV.day)}</b> 일정을 미리 보고 있어요. 계획한 시간대로 보여 드려요.`:`오늘은 여행 날짜(${dLabel(LP.date)}${nd>1?" – "+dLabel(LP.date,nd-1):""})가 아니라서 <b>${LV.day+1}일차</b> 일정을 계획한 시간대로 미리 보여 드려요. 여행 당일에는 그날 일정과 지금 시각으로 바뀌어요.`):"";
+  const missed=(LV.missed||[]).length?`<p class="lmiss">계획 시간이 이미 지난 일정 <b>${LV.missed.length}곳</b> · ${LV.missed.map(x=>`${esc(x.p[0])} ${fmt(x.h)}`).join(", ")} <button data-restore="1">다시 넣기</button></p>`:"";
+  $("liveDay").innerHTML=dayTabs+(dayNote?`<p class="lday">${dayNote}</p>`:"")+missed;
   $("liveTl").innerHTML=fl.length?fl.map((x,i)=>{
     const warns=[];if(sun!=null&&isScenic(x.s.p)&&x.arr>sun&&x.arr-sun<3)warns.push("일몰 뒤 도착");if(LV.weather==="비"&&!x.s.custom&&!isIndoor(x.s.p))warns.push("야외");if(x.end>24)warns.push("자정 넘김");
     const rlinks=routeLinks(LV.city,{name:x.from,co:i===0?locCoord():coordOf(fl[i-1].s)},{name:x.s.p[0],co:x.s.custom?null:coordOf(x.s)},LV.move==="car"&&x.L&&x.L.kind!=="walk"?{kind:"car"}:x.L,`${x.s.p[0]}까지 길찾기`);
     return `<li class="lstop"><div class="lt">${fmtL(x.arr)}</div><div class="body"><span class="cat">${CAT[x.s.cat]||"기타"}${warns.map(w=>` · <span class="warn">${w}</span>`).join("")}</span><span class="name">${esc(x.s.p[0])}</span>
-      ${x.s.custom?"":infoHTML(x.s.p[0],LV.city)}<span class="note">${esc(x.from)}에서 ${x.L?`${legTxt(x.L)}`:"이동 정보 없음"}</span>
+      ${x.s.custom?"":infoHTML(x.s.p[0],LV.city)}<span class="note">${esc(x.from)}에서 ${x.L?`${legTxt(x.L)}`:"이동 정보 없음"}${x.wait>=.25?` · <b>${fmt(x.reach)}쯤 도착</b>, 계획한 ${fmt(x.arr)}까지 ${fmtDur(x.wait*60)} 여유`:""}</span>
       <div class="acts"><button data-arrive="${i}">여기 도착했어요</button>${i===0?rlinks:""}<button class="del" data-skip="${i}">건너뛰기</button></div></div></li>`}).join("")
     :`<li class="hint">남은 일정이 없어요. '배고파'나 '이대로 갈래'를 누르면 근처 추천을 받을 수 있어요.</li>`;
 }
@@ -2351,6 +2374,9 @@ function bindLive(){
     if(b.id==="propApply"){const P=LV.prop;LV.stops=P.stops;LV.move=P.move;LV.prop=null;renderLive();toast("남은 일정을 바꿨어요.")}
     if(b.id==="propAgain")ask(LV.prop.kind);
     if(b.id==="propClose"){LV.prop=null;renderLive()}};
+  $("liveDay").onclick=e=>{const b=e.target.closest("button");if(!b)return;
+    if(b.dataset.lday!==undefined){setLiveDay(+b.dataset.lday);LV.prop=null;renderLive();toast(`${+b.dataset.lday+1}일차 일정으로 바꿨어요`)}
+    if(b.dataset.restore){LV.stops=LV.missed.concat(LV.stops);LV.missed=[];renderLive();toast("지난 일정을 다시 넣었어요. 지금부터 이어서 계산해요")}};
   $("liveTl").onclick=e=>{const b=e.target.closest("button");if(!b)return;
     if(b.dataset.arrive!==undefined){const i=+b.dataset.arrive,s=LV.stops[i];LV.visited.push(...LV.stops.slice(0,i+1).map(x=>x.p[0]));if(!s.custom)LV.loc=s.p[0];LV.stops=LV.stops.slice(i+1);renderLive();toast(`${s.p[0]} 도착! 다음 일정 시간을 다시 계산했어요.`)}
     if(b.dataset.skip!==undefined){const s=LV.stops.splice(+b.dataset.skip,1)[0];renderLive();toast(`${s.p[0]}은(는) 건너뛸게요.`)}};
