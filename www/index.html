@@ -2498,7 +2498,7 @@ document.addEventListener("click",e=>{const g=e.target.closest&&e.target.closest
 <script>
 /* 위키백과 대표 사진: 장소 이름으로 문서를 찾아 대표 이미지만 가져와요. 결과는 기기에 기억해요. */
 (function(){
-  var KEY="mbtiPhotos1",cache={};try{cache=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
+  var KEY="mbtiPhotos2",cache={};try{cache=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
   var save=function(){try{localStorage.setItem(KEY,JSON.stringify(cache))}catch(e){}};
   var pending={};
   function titles(name,city){
@@ -2514,18 +2514,33 @@ document.addEventListener("click",e=>{const g=e.target.closest&&e.target.closest
       var q=j.query||{},map={};(q.normalized||[]).concat(q.redirects||[]).forEach(function(n){map[n.from]=n.to});
       var byT={};Object.values(q.pages||{}).forEach(function(pg){if(pg.thumbnail)byT[pg.title]=pg.thumbnail.source});
       for(var i=0;i<list.length;i++){var t=list[i];while(map[t])t=map[t];if(byT[t])return {src:byT[t],lang:lang,title:t}}
-      return null}).catch(function(){return null});
+      return null}).catch(function(){throw "net"});
+  }
+  var norm=function(x){return String(x||"").toLowerCase().replace(/\(.*?\)/g,"").replace(/[\s·.,'’\-]/g,"")};
+  function search(lang,q,core){
+    var u="https://"+lang+".wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=5&gsrnamespace=0&prop=pageimages&piprop=thumbnail&pithumbsize=640&gsrsearch="+encodeURIComponent(q);
+    return fetch(u).then(function(r){return r.json()}).then(function(j){
+      var pages=Object.values((j.query||{}).pages||{}).sort(function(a,b){return (a.index||0)-(b.index||0)});
+      var c=norm(core);if(c.length<2)return null;
+      for(var i=0;i<pages.length;i++){var pg=pages[i],t=norm(pg.title);if(pg.thumbnail&&(t.indexOf(c)>=0||(t.length>=3&&c.indexOf(t)>=0)))return {src:pg.thumbnail.source,lang:lang,title:pg.title}}
+      return null}).catch(function(){throw "net"});
   }
   function find(name,city){
-    var k=city+"|"+name;if(k in cache)return Promise.resolve(cache[k]);if(pending[k])return pending[k];
-    var tries=titles(name,city);
-    return pending[k]=tries.reduce(function(pr,tr){return pr.then(function(r){return r||ask(tr.lang,tr.t)})},Promise.resolve(null))
-      .then(function(r){cache[k]=r;save();return r});
+    var k=city+"|"+name,c=cache[k];
+    if(c&&(c.r||Date.now()-c.t<3*864e5))return Promise.resolve(c.r);if(pending[k])return pending[k];
+    var tries=titles(name,city),kr=typeof isKR==="function"&&isKR(city),q=(typeof QN!=="undefined"&&QN[name])||"";
+    var core=name.split("·")[0].replace(/ (야경|일몰|밤바다|밤 산책|낙조|산책로)$/,"").trim();
+    var en=typeof CITYEN!=="undefined"&&CITYEN[city]||"";
+    var steps=tries.map(function(tr){return function(){return ask(tr.lang,tr.t)}});
+    if(kr)steps.push(function(){return search("ko",core.indexOf(city)===0?core:city+" "+core,core)});
+    else{if(q)steps.push(function(){var qc=q.split(",")[0];return search("en",qc+(en&&qc.indexOf(en)<0?" "+en:""),qc)});steps.push(function(){return search("ko",core,core)})}
+    return pending[k]=steps.reduce(function(pr,f){return pr.then(function(r){return r||f()})},Promise.resolve(null))
+      .then(function(r){cache[k]={r:r,t:Date.now()};save();delete pending[k];return r},function(){delete pending[k];return null});
   }
   function hydrate(root){
     (root.querySelectorAll?root:document).querySelectorAll(".sphoto:not([data-done])").forEach(function(el){
       el.setAttribute("data-done","1");var name=el.getAttribute("data-ph"),city=el.getAttribute("data-city");
-      var k=city+"|"+name;if(cache[k]===null){el.classList.add("none");return}
+      var k=city+"|"+name,c0=cache[k];if(c0&&!c0.r&&Date.now()-c0.t<3*864e5){el.classList.add("none");return}
       el.classList.add("load");
       find(name,city).then(function(r){el.classList.remove("load");
         if(!r){el.classList.add("none");return}
