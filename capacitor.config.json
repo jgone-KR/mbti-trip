@@ -1,0 +1,11 @@
+{
+  "appId": "com.mbtitrip.app",
+  "appName": "즉흥 여행",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
