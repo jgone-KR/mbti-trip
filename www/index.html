@@ -289,8 +289,19 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,la
 .lchip.rain{background:#5B8DEF;color:#fff}
 details.lsetbox{background:var(--paper);border-radius:14px}
 details.lsetbox summary{cursor:pointer;padding:13px 16px;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:8px}
-details.lsetbox summary::after{content:"+";color:var(--muted)}
-details.lsetbox[open] summary::after{content:"−"}
+details.lsetbox summary::-webkit-details-marker{display:none}
+details.lsetbox{border:2px solid var(--accent);box-shadow:0 2px 10px rgba(0,0,0,.06)}
+details.lsetbox summary{align-items:center;padding:14px 16px}
+details.lsetbox .lsic{flex:none;width:40px;height:40px;border-radius:12px;background:var(--tint);color:var(--accent);display:grid;place-items:center}
+details.lsetbox .lsic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+details.lsetbox .lstx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+details.lsetbox .lstx b{font-size:17px}
+details.lsetbox #lsetSum{font-size:13.5px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+details.lsetbox .lsbtn{flex:none;padding:8px 13px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:14px;font-weight:800}
+details.lsetbox .lsbtn::before{content:"바꾸기 ›"}
+details.lsetbox[open] .lsbtn{background:var(--chip);color:var(--ink)}
+details.lsetbox[open] .lsbtn::before{content:"접기"}
+details.lsetbox summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:12px}
 .lset{display:flex;flex-direction:column;gap:14px;padding:0 16px 16px}
 .lrow{display:flex;flex-direction:column;gap:2px}
 .lset select,.lset input[type=time]{font:inherit;padding:9px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);max-width:100%;margin-top:6px}
@@ -633,6 +644,31 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 .pswi{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .pswi>span{min-width:0}.pswi b{font-size:15px}.pswi small{display:block;font-size:12.5px;color:var(--muted);line-height:1.4}
 .pswi button{all:unset;cursor:pointer;flex:none;padding:7px 12px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-weight:800;font-size:13.5px}
+
+.cnote{display:flex;flex-direction:column;gap:6px;background:var(--tint);border:2px solid var(--accent);border-radius:14px;padding:12px 14px;margin-bottom:12px}
+.cnote>b{font-size:16px}
+.cnote .cdiff{font-size:14.5px;line-height:1.5}.cnote .cdiff s{color:var(--muted)}
+.cnote .cbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.cnote .cbtns button{all:unset;cursor:pointer;padding:10px 14px;border-radius:999px;font-weight:800;font-size:14.5px;background:var(--paper);color:var(--ink)}
+.cnote .cbtns .primary{background:var(--accent);color:var(--accent-ink)}
+.cnote .cbtns button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+.gpsbtn{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:8px;align-self:flex-start;margin-top:6px;padding:11px 16px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-weight:800;font-size:15px}
+.gpsbtn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.gpsbtn.on{background:var(--good)}
+.gpsbtn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.lhelp{display:block;font-size:13px;color:var(--muted);line-height:1.5;margin-top:4px}.lhelp b{color:var(--ink)}
+.lsub{display:flex;flex-direction:column;margin-top:8px;font-size:13px;color:var(--muted);font-weight:600}
+.hotelf{display:flex;gap:8px;margin-top:6px}
+.hotelf input{flex:1;min-width:0;font:inherit;font-size:16px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.hotelf button{all:unset;cursor:pointer;padding:10px 16px;border-radius:10px;background:var(--ink);color:var(--paper);font-weight:800}
+.hres{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.hres li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
+.hres li>span{min-width:0}.hres small{display:block;font-size:12.5px;color:var(--muted)}
+.hres button{all:unset;cursor:pointer;flex:none;padding:7px 12px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-weight:800;font-size:13.5px}
+.hotelacts{display:flex;gap:14px;margin-top:8px}
+.hotelacts button{all:unset;cursor:pointer;font-size:14px;font-weight:700;color:var(--accent)}
+.hotelacts button:focus-visible,.hres button:focus-visible,.hotelf button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style>
 
 <div class="onb" id="onb" role="dialog" aria-modal="true" aria-label="앱 사용법" hidden>
@@ -828,11 +864,19 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
   <section class="page" id="pg-live" aria-labelledby="hLive" hidden>
     <div class="subbar"><button class="back" aria-label="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="hLive">지금 여행 중</h1></div>
     <div class="ctxcard"><div class="ctxline" id="ctxLine"></div><div class="lchips" id="ctxChips"></div></div>
-    <details class="lsetbox"><summary>상황 바꾸기 · 위치, 동행, 이동, 날씨, 시각</summary>
+    <details class="lsetbox"><summary><span class="lsic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg></span><span class="lstx"><b>내 상황 설정</b><span id="lsetSum">동행 · 이동수단 · 날씨 · 시각</span></span><span class="lsbtn" aria-hidden="true"></span></summary>
       <div class="lset">
         <label class="lrow"><span class="label" style="margin:0">어떤 코스로 여행 중인가요</span><select id="lvSource"></select></label>
-        <label class="lrow"><span class="label" style="margin:0">지금 있는 곳</span><select id="lvLoc"></select></label>
-        <label class="lrow"><span class="label" style="margin:0">숙소 위치</span><select id="lvHotel"></select></label>
+        <div class="lrow"><span class="label" style="margin:0">지금 있는 곳</span>
+          <button type="button" class="gpsbtn" id="lvGps"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7.5"/></svg><span id="lvGpsTx">현재 위치 불러오기</span></button>
+          <span class="lhelp" id="lvGpsNote">휴대폰 위치를 쓰면 이동 시간과 길찾기 출발점이 정확해져요.</span>
+          <label class="lsub"><span>또는 목록에서 고르기</span><select id="lvLoc" aria-label="지금 있는 곳 고르기"></select></label></div>
+        <div class="lrow"><span class="label" style="margin:0">숙소 위치</span>
+          <span class="lhelp" id="lvHotelNow"></span>
+          <form class="hotelf" id="lvHotelForm"><input id="lvHotelQ" maxlength="60" placeholder="숙소 이름이나 주소 (예: 라한호텔 전주)" aria-label="숙소 이름이나 주소"><button type="submit">찾기</button></form>
+          <div id="lvHotelRes"></div>
+          <span class="hotelacts"><button type="button" id="lvHotelHere">지금 위치를 숙소로</button><button type="button" id="lvHotelReset">기본 위치로</button></span>
+          <select id="lvHotel" hidden aria-hidden="true"></select></div>
         <div class="lrow"><span class="label">동행</span><div class="lseg" id="lvWho"></div></div>
         <div class="lrow"><span class="label">이동수단</span><div class="lseg" id="lvMove"></div></div>
         <div class="lrow"><span class="label">날씨</span><div class="lseg" id="lvWeather"></div></div>
@@ -840,6 +884,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
         <p class="small">날씨는 직접 알려 주세요. 실시간 예보는 아직 연결되어 있지 않아요. 일몰 시각은 도시 위치와 오늘 날짜로 계산해요.</p>
       </div>
     </details>
+    <div id="condNote" aria-live="polite"></div>
     <div class="aicard" id="aiCard" aria-live="polite"></div>
     <div class="quick" id="quick"></div>
     <form class="ask" id="askForm"><input id="askInput" maxlength="120" placeholder="AI에게 직접 말하기 (예: 아이가 졸려해요)" aria-label="AI에게 할 말"><button type="submit">보내기</button></form>
@@ -2165,9 +2210,9 @@ const isDrink=p=>/포장마차|야타이|요코초|노포|폰토초|루프탑|�
 const isScenic=p=>(p[1]==="s"||p[1]==="n")&&p[4]>=.6&&!isIndoor(p);
 const coordOf=s=>s.c||COORD[s.p[0]]||null;
 const baseOf=c=>CITYBASE[c]?[CITYBASE[c][1],CITYBASE[c][2]]:cityCenter(c);
-const hotelLabel=()=>LV.hotel?`숙소(${LV.hotel} 근처)`:`숙소(${CITYBASE[LV.city]?CITYBASE[LV.city][0]:"도심"})`;
-const locCoord=()=>LV.loc==="숙소"?(LV.hotel?COORD[LV.hotel]:baseOf(LV.city)):COORD[LV.loc]||baseOf(LV.city);
-const locLabel=()=>LV.loc==="숙소"?hotelLabel():LV.loc;
+const hotelLabel=()=>LV.hotelC?`숙소(${LV.hotelC.name})`:LV.hotel?`숙소(${LV.hotel} 근처)`:`숙소(${CITYBASE[LV.city]?CITYBASE[LV.city][0]:"도심"})`;
+const locCoord=()=>LV.loc==="@gps"&&LV.gps?LV.gps.co:LV.loc==="숙소"?locHotel():COORD[LV.loc]||baseOf(LV.city);
+const locLabel=()=>LV.loc==="@gps"&&LV.gps?`현재 위치${LV.gps.near?` (${LV.gps.near} 근처)`:""}`:LV.loc==="숙소"?hotelLabel():LV.loc;
 function legFrom(from,s,move){
   const to=coordOf(s);if(!from||!to)return null;
   const km=haversine(from,to)*1.3,T=TRANSIT[LV.city]||["대중교통",20,10];
@@ -2190,7 +2235,7 @@ function candidates(){
 const nearest=(list,score)=>list.sort((a,b)=>score(a)-score(b))[0];
 const mk=p=>({cat:p[1],h:0,p});
 const hotelStop=()=>({cat:"x",h:0,p:["숙소에 주차하기","x",0,0,0,"차는 여기 두고 걸어서 움직여요"],custom:true,c:locHotel()});
-const locHotel=()=>LV.hotel?COORD[LV.hotel]:baseOf(LV.city);
+const locHotel=()=>LV.hotelC?LV.hotelC.co:LV.hotel?COORD[LV.hotel]:baseOf(LV.city);
 const legTxt=L=>L.km===0?"바로 앞이에요":`${L.mode} 약 ${fmtDur(L.min)} · ${L.km<1?Math.round(L.km*100)*10+"m":L.km.toFixed(1)+"km"}`;
 const fmtL=h=>h>=24?`다음 날 ${fmt(h-24)}`:fmt(h);
 const chain=a=>a.map(s=>s.p[0]).join(" → ");
@@ -2305,7 +2350,7 @@ JSON으로만 답해:
 async function ask(kind,text="",again=false){
   if(LV.busy)return;
   if(!again){LV.history=[];LV.pswapSeen=[]}else if(LV.prop&&LV.prop.stops)LV.history=(LV.history||[]).concat([LV.prop.stops.map(x=>x.p[0])]);
-  LV.lastAsk={kind,text};LV.pswap=null;
+  LV.lastAsk={kind,text};LV.pswap=null;LV.condBase=null;
   const draft=ruleProposal(kind==="text"?textKind(text):kind);
   LV.prop=Object.assign({},draft,{loading:true});LV.busy=true;renderLive();
   let prop=draft;
@@ -2328,6 +2373,7 @@ function loadLiveFrom(src){
   LV.onTrip=diff!==null&&diff>=0&&diff<n;LV.todayIdx=LV.onTrip?diff:(diff!==null&&diff>=n?n-1:0);
   setLiveDay(LV.todayIdx);
   if(LV.hotel&&!CITY[LV.city].p.some(p=>p[0]===LV.hotel))LV.hotel=null;
+  if(typeof hotelLoad==="function")hotelLoad();if(LV.gps&&haversine(LV.gps.co,baseOf(LV.city))>60){LV.gps=null}
 }
 function setLiveDay(d){
   const P=LV.plan;if(!P)return;LV.day=d;const all=clone(P.days[d]||[]);
@@ -2353,7 +2399,7 @@ function renderLive(){
   // 설정
   $("lvSource").innerHTML=liveSources().map(([v,l])=>`<option value="${esc(v)}" ${v===LV.src?"selected":""}>${esc(l)}</option>`).join("");
   const places=CITY[LV.city].p.map(p=>p[0]);
-  $("lvLoc").innerHTML=[`<option value="숙소">${esc(hotelLabel())}</option>`,...places.map(n=>`<option value="${esc(n)}" ${n===LV.loc?"selected":""}>${esc(n)}</option>`)].join("");
+  $("lvLoc").innerHTML=[...(LV.gps?[`<option value="@gps" ${LV.loc==="@gps"?"selected":""}>${esc(`현재 위치${LV.gps.near?` (${LV.gps.near} 근처)`:""}`)}</option>`]:[]),`<option value="숙소" ${LV.loc==="숙소"?"selected":""}>${esc(hotelLabel())}</option>`,...places.map(n=>`<option value="${esc(n)}" ${n===LV.loc?"selected":""}>${esc(n)}</option>`)].join("");
   $("lvHotel").innerHTML=[`<option value="">${esc(CITYBASE[LV.city]?CITYBASE[LV.city][0]:"도심")} (기본)</option>`,...places.map(n=>`<option value="${esc(n)}" ${n===LV.hotel?"selected":""}>${esc(n)} 근처</option>`)].join("");
   const seg=(id,list,cur,lab=x=>x)=>{$(id).innerHTML=list.map(v=>`<button data-v="${v}" aria-pressed="${v===cur}">${lab(v)}</button>`).join("")};
   seg("lvWho",WHO,LV.who);seg("lvMove",Object.keys(MOVES),LV.move,k=>MOVES[k]);seg("lvWeather",WEATHER,LV.weather);
@@ -2367,7 +2413,11 @@ function renderLive(){
     ${P.aiFail?`<p class="small">${P.aiFail}</p>`:""}
     ${P.stops.length?`<ol class="ptl">${fl.map((x,pi)=>{return `<li><span class="pt">${fmtL(x.arr)}</span><span class="pb"><b>${esc(x.s.p[0])}</b>${x.s.custom?"":infoHTML(x.s.p[0],LV.city,true)}<small>${esc(x.from)}에서 ${x.L?`${legTxt(x.L)}`:"이동 정보 없음"}${x.s.custom?"":isIndoor(x.s.p)?" · 실내":" · 야외"}</small><span class="pacts">${x.s.custom?"":`<a href="${placeURL(x.s.p[0],LV.city)}" target="_blank" rel="noopener">${mapApp(LV.city)}에서 위치 확인</a><button type="button" data-pswap="${pi}" aria-expanded="${LV.pswap===pi}">${LV.pswap===pi?"닫기":"이것만 바꾸기"}</button>`}<button type="button" class="del" data-pdel="${pi}">빼기</button></span>${LV.pswap===pi?pswapHTML(P,pi):""}</span></li>`}).join("")}</ol>`:""}
     <div class="row"><button class="primary" id="propApply">이대로 바꾸기</button><button id="propAgain">다시 추천</button><button id="propClose">닫기</button></div>`}
-  $("aiCard").innerHTML=card;
+  $("lsetSum").textContent=`${LV.who} · ${MOVES[LV.move]} · ${LV.weather} · ${LV.timeMode==="custom"?fmt(LV.customH)+" 기준":"지금 시각"} · ${locLabel()}`;
+  $("lvHotelNow").innerHTML=`지금 숙소: <b>${esc(LV.hotelC?LV.hotelC.name:LV.hotel?LV.hotel+" 근처":(CITYBASE[LV.city]?CITYBASE[LV.city][0]:"도심")+" (기본)")}</b>${LV.hotelC&&LV.hotelC.addr?` · ${esc(LV.hotelC.addr)}`:""}`;
+  $("lvGpsTx").textContent=LV.gpsBusy?"위치 찾는 중…":LV.loc==="@gps"&&LV.gps?"현재 위치 다시 불러오기":"현재 위치 불러오기";
+  $("lvGps").classList.toggle("on",LV.loc==="@gps"&&!!LV.gps);
+  $("aiCard").innerHTML=card;renderCondNote();
   $("quick").innerHTML=QUICK.map(([k,l])=>`<button data-q="${k}" ${LV.busy?"disabled":""}>${l}</button>`).join("");
   // 남은 일정
   const LP=LV.plan,nd=LP?LP.days.length:1,preview=!(LV.onTrip&&LV.day===LV.todayIdx)&&LV.timeMode==="real"&&LV.stops[0]&&LV.stops[0].h;
@@ -2399,7 +2449,56 @@ function pswapHTML(P,i){
   if(!list.length)return `<span class="pswl empty">비슷한 후보가 더 없어요. 아래 입력칸에 원하는 곳을 직접 말해 보세요.</span>`;
   return `<span class="pswl">${list.map(c=>`<span class="pswi"><span><b>${esc(c.p[0])}</b>${c.fit===null?"":`<span class="swfit${c.fit>=70?" hi":c.fit<45?" lo":""}">궁합 ${c.fit}%</span>`}<small>${CAT[c.p[1]]} · ${c.km<99?(c.km<.95?Math.round(c.km*100)*10+"m":c.km.toFixed(1)+"km")+(i>0?" (앞 장소에서)":" (지금 위치에서)"):"거리 정보 없음"}${isIndoor(c.p)?" · 실내":" · 야외"}${INFO[c.p[0]]?" · "+esc(INFO[c.p[0]][1]):""}</small></span><button type="button" data-ppick="${i}|${esc(c.p[0])}">이걸로</button></span>`).join("")}</span>`;
 }
+/* 상황 설정을 바꾸면 무엇이 바뀌었는지 보여 주고 바로 다시 짜기를 권해요 */
+const condSnap=()=>({who:LV.who,move:LV.move,weather:LV.weather,loc:LV.loc,hotel:LV.hotelC?LV.hotelC.name:LV.hotel||""});
+function lvCondMark(){if(!LV.condBase)LV.condBase=condSnap()}
+function condDiff(){
+  const a=LV.condBase;if(!a)return[];const b=condSnap(),out=[];
+  if(a.who!==b.who)out.push(["동행",a.who,b.who]);
+  if(a.move!==b.move)out.push(["이동수단",MOVES[a.move],MOVES[b.move]]);
+  if(a.weather!==b.weather)out.push(["날씨",a.weather,b.weather]);
+  if(a.loc!==b.loc){const nm=v=>v==="숙소"?"숙소":v==="@gps"?"현재 위치":v;out.push(["지금 있는 곳",nm(a.loc),nm(b.loc)])}
+  if(a.hotel!==b.hotel)out.push(["숙소 위치",a.hotel||"기본",b.hotel||"기본"]);
+  return out;
+}
+function condKind(){const b=condSnap(),a=LV.condBase||{};if(b.weather==="비"&&a.weather!=="비")return"rain";if(b.move==="car"&&a.move!=="car")return"keep";return"keep"}
+function renderCondNote(){
+  const d=condDiff();
+  $("condNote").innerHTML=d.length&&!LV.busy?`<div class="cnote"><b>조건이 바뀌었어요</b><span class="cdiff">${d.map(([k,x,y])=>`${k} <s>${esc(x)}</s> → <b>${esc(y)}</b>`).join(" · ")}</span><span class="small">이동 시간은 이미 새 조건으로 바뀌었어요. 일정도 이 조건에 맞게 다시 짤까요?</span><span class="cbtns"><button class="primary" type="button" id="condGo">이 조건으로 다시 짜기</button><button type="button" id="condSkip">일정은 그대로 둘게요</button></span></div>`:"";
+}
+/* 현재 위치(GPS)와 숙소 검색 */
+function nearPlace(co){let best=null,bd=1e9;for(const p of CITY[LV.city].p){const c=COORD[p[0]];if(!c)continue;const d=haversine(co,c);if(d<bd){bd=d;best=p[0]}}return bd<3?best:null}
+function getGps(){return new Promise((ok,no)=>{if(!navigator.geolocation)return no({code:"none"});navigator.geolocation.getCurrentPosition(ps=>ok([ps.coords.latitude,ps.coords.longitude,ps.coords.accuracy]),e=>no(e),{enableHighAccuracy:true,timeout:12000,maximumAge:60000})})}
+async function useGps(silent){
+  if(LV.gpsBusy)return;LV.gpsBusy=true;if(!silent)renderLive();
+  try{const [la,lo,acc]=await getGps(),co=[la,lo],far=haversine(co,baseOf(LV.city));
+    if(far>60){LV.gpsBusy=false;if(!silent){$("lvGpsNote").textContent=`지금 위치가 ${LV.city}에서 약 ${Math.round(far)}km 떨어져 있어요. 여행지에 도착하면 다시 눌러 주세요.`;renderLive();toast("여행지와 멀어서 현재 위치를 쓰지 않았어요")}return}
+    lvCondMark&&lvCondMark();LV.gps={co,acc,near:nearPlace(co),t:Date.now()};LV.loc="@gps";LV.gpsBusy=false;renderLive();
+    $("lvGpsNote").textContent=`현재 위치를 반영했어요${acc?` (오차 약 ${Math.round(acc)}m)`:""}. 이동 시간과 길찾기가 여기서부터 계산돼요.`;if(!silent)toast("현재 위치를 반영했어요")}
+  catch(e){LV.gpsBusy=false;renderLive();if(!silent){const m=e&&e.code===1?"위치 권한이 꺼져 있어요. 휴대폰 설정에서 이 앱(또는 브라우저)의 위치 사용을 허용해 주세요.":e&&e.code==="none"?"이 기기에서는 위치를 쓸 수 없어요.":"위치를 찾지 못했어요. 잠시 뒤 다시 눌러 주세요.";$("lvGpsNote").textContent=m;toast(m)}}
+}
+const HKEY="mbtiHotel1";
+function hotelLoad(){try{const o=JSON.parse(localStorage.getItem(HKEY)||"{}");LV.hotelC=o[LV.city]||null}catch(e){LV.hotelC=null}}
+function hotelSave(){try{const o=JSON.parse(localStorage.getItem(HKEY)||"{}");if(LV.hotelC)o[LV.city]=LV.hotelC;else delete o[LV.city];localStorage.setItem(HKEY,JSON.stringify(o))}catch(e){}}
+async function hotelSearch(q){
+  const box=$("lvHotelRes"),b=baseOf(LV.city);box.innerHTML=`<p class="lhelp">찾는 중…</p>`;
+  try{const r=await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=6&lat=${b[0]}&lon=${b[1]}&location_bias_scale=0.2`);const j=await r.json();
+    const list=(j.features||[]).map(f=>{const pr=f.properties||{},c=f.geometry&&f.geometry.coordinates;if(!c)return null;const co=[c[1],c[0]];const addr=[pr.city||pr.county,pr.district||pr.locality,pr.street,pr.housenumber].filter(Boolean).join(" ");return{name:pr.name||[pr.street,pr.housenumber].filter(Boolean).join(" ")||q,addr,co,km:haversine(co,b)}}).filter(x=>x&&x.km<60).slice(0,4);
+    LV.hotelRes=list;
+    box.innerHTML=list.length?`<ul class="hres">${list.map((x,i)=>`<li><span><b>${esc(x.name)}</b><small>${esc(x.addr||"")} · 시내에서 ${x.km<1?Math.round(x.km*1000)+"m":x.km.toFixed(1)+"km"}</small></span><button type="button" data-hpick="${i}">여기로</button></li>`).join("")}</ul>`
+      :`<p class="lhelp">찾지 못했어요. 숙소 이름을 조금 바꿔 보거나, 숙소에 도착해서 <b>지금 위치를 숙소로</b>를 눌러 주세요.</p>`}
+  catch(e){box.innerHTML=`<p class="lhelp">인터넷 연결을 확인해 주세요. 숙소에 있다면 <b>지금 위치를 숙소로</b>를 눌러도 돼요.</p>`}
+}
 function bindLive(){
+  hotelLoad();
+  $("lvGps").onclick=()=>useGps(false);
+  $("lvHotelForm").addEventListener("submit",e=>{e.preventDefault();const q=$("lvHotelQ").value.trim();if(q.length<2){toast("숙소 이름이나 주소를 적어 주세요");return}hotelSearch(q)});
+  $("lvHotelRes").onclick=e=>{const b=e.target.closest("button[data-hpick]");if(!b)return;const x=LV.hotelRes[+b.dataset.hpick];lvCondMark();LV.hotelC={name:x.name,addr:x.addr,co:x.co};LV.hotel=null;hotelSave();$("lvHotelRes").innerHTML="";$("lvHotelQ").value="";renderLive();toast(`숙소를 ${x.name}(으)로 정했어요`)};
+  $("lvHotelHere").onclick=async()=>{try{const [la,lo]=await getGps();lvCondMark();LV.hotelC={name:"내가 정한 숙소",addr:"현재 위치로 저장",co:[la,lo]};LV.hotel=null;hotelSave();renderLive();toast("지금 위치를 숙소로 저장했어요")}catch(e){toast(e&&e.code===1?"위치 권한을 허용해 주세요":"위치를 찾지 못했어요")}};
+  $("lvHotelReset").onclick=()=>{lvCondMark();LV.hotelC=null;LV.hotel=null;hotelSave();renderLive();toast("숙소를 기본 위치로 되돌렸어요")};
+  $("condNote").onclick=e=>{const b=e.target.closest("button");if(!b)return;
+    if(b.id==="condGo"){const d=condDiff(),t="조건을 바꿨어요: "+d.map(([k,x,y])=>`${k} ${x}→${y}`).join(", ");LV.condBase=null;ask(condKind(),t);$("aiCard").scrollIntoView({behavior:"smooth",block:"start"})}
+    if(b.id==="condSkip"){LV.condBase=null;renderLive();toast("일정은 그대로 두고 이동 시간만 새 조건으로 계산했어요")}};
   $("quick").onclick=e=>{const b=e.target.closest("button[data-q]");if(b)ask(b.dataset.q)};
   $("askForm").addEventListener("submit",e=>{e.preventDefault();const v=$("askInput").value.trim();if(!v){toast("AI에게 할 말을 적어 주세요.");return}$("askInput").value="";ask("text",v)});
   $("aiCard").onclick=e=>{const b=e.target.closest("button");if(!b)return;
@@ -2415,19 +2514,19 @@ function bindLive(){
   $("liveTl").onclick=e=>{const b=e.target.closest("button");if(!b)return;
     if(b.dataset.arrive!==undefined){const i=+b.dataset.arrive,s=LV.stops[i];LV.visited.push(...LV.stops.slice(0,i+1).map(x=>x.p[0]));if(!s.custom)LV.loc=s.p[0];LV.stops=LV.stops.slice(i+1);renderLive();toast(`${s.p[0]} 도착! 다음 일정 시간을 다시 계산했어요.`)}
     if(b.dataset.skip!==undefined){const s=LV.stops.splice(+b.dataset.skip,1)[0];renderLive();toast(`${s.p[0]}은(는) 건너뛸게요.`)}};
-  const segBind=(id,key)=>{$(id).onclick=e=>{const b=e.target.closest("button");if(!b)return;LV[key]=b.dataset.v;renderLive()}};
+  const segBind=(id,key)=>{$(id).onclick=e=>{const b=e.target.closest("button");if(!b)return;lvCondMark();LV[key]=b.dataset.v;renderLive()}};
   segBind("lvWho","who");segBind("lvMove","move");segBind("lvWeather","weather");segBind("lvTimeMode","timeMode");
   $("lvTime").addEventListener("change",e=>{if(!e.target.value)return;const [h1,m1]=e.target.value.split(":").map(Number);LV.customH=h1+m1/60;renderLive()});
   $("lvSource").onchange=e=>{loadLiveFrom(e.target.value);renderLive();toast("이 코스로 여행을 시작해요.")};
-  $("lvLoc").onchange=e=>{LV.loc=e.target.value;renderLive()};
-  $("lvHotel").onchange=e=>{LV.hotel=e.target.value||null;renderLive()};
+  $("lvLoc").onchange=e=>{lvCondMark();LV.loc=e.target.value;renderLive()};
+  $("lvHotel").onchange=e=>{lvCondMark();LV.hotel=e.target.value||null;renderLive()};
   $("liveToPlan").onclick=()=>{
     if(!LV.stops.length){toast("보낼 일정이 없어요.");return}
     const fl=flow(LV.stops),pr=profile();
     st.draft={days:[fl.map(x=>Object.assign({},x.s,{h:r10(x.arr)}))],win:[[nowH(),Math.max(21.5,r10(fl[fl.length-1].end))]],city:LV.city,len:"반나절",date:cityParts(LV.city).iso,dep:nowH(),ret:21.5,prof:pr,sig:sig(pr),no:Math.floor(Math.random()*9000)+1000,name:`${LV.city} 오늘 남은 일정`,id:null};
     st.dirty=true;go("plan");toast("지금 일정을 코스 짜기로 옮겼어요. 저장하면 내 플랜에 남아요.");
   };
-  setInterval(()=>{if(st.page==="live"&&LV.timeMode==="real"&&!LV.busy&&!document.activeElement.closest("#pg-live select,#pg-live input"))renderLive()},60000);
+  setInterval(()=>{if(st.page==="live"&&LV.timeMode==="real"&&!LV.busy&&!document.activeElement.closest("#pg-live select,#pg-live input")){if(LV.loc==="@gps"&&LV.gps)useGps(true);else renderLive()}},60000);
 }
 bindLive();
 
