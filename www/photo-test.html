@@ -577,6 +577,16 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 .sphoto.none{display:none}
 .sphoto.load{background-image:linear-gradient(100deg,var(--chip) 30%,var(--paper) 50%,var(--chip) 70%);background-size:200% 100%;animation:phshim 1.2s linear infinite}
 .sphoto i{position:absolute;right:8px;bottom:8px;font:600 11px/1 var(--body);font-style:normal;color:#fff;background:rgba(0,0,0,.5);padding:4px 7px;border-radius:99px}
+.sphoto.ok{cursor:zoom-in}
+.sphoto.ok:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.sphoto b{position:absolute;left:8px;bottom:8px;font:700 11px/1 var(--body);color:#fff;background:rgba(0,0,0,.5);padding:4px 7px;border-radius:99px}
+.phbox{position:fixed;inset:0;z-index:300;background:rgba(8,10,12,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 56px) 12px calc(env(safe-area-inset-bottom,0px) + 24px);box-sizing:border-box}
+.phbox[hidden]{display:none!important}
+.phbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:10px;touch-action:pinch-zoom}
+.phbox .phcap{color:#fff;font:600 15px/1.5 var(--body);margin-top:12px;text-align:center}
+.phbox .phcap small{display:block;font-weight:500;font-size:12.5px;opacity:.75}
+.phbox .phx{all:unset;cursor:pointer;position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;width:44px;height:44px;border-radius:99px;background:rgba(255,255,255,.16);color:#fff;font-size:26px;line-height:44px;text-align:center}
+.phbox .phx:focus-visible{outline:2px solid #fff}
 @keyframes phshim{to{background-position:-200% 0}}
 @media (prefers-reduced-motion:reduce){.sphoto.load{animation:none}}
 </style>
@@ -2478,10 +2488,23 @@ document.addEventListener("click",e=>{const g=e.target.closest&&e.target.closest
       el.classList.add("load");
       find(name,city).then(function(r){el.classList.remove("load");
         if(!r){el.classList.add("none");return}
-        var img=new Image();img.onload=function(){el.style.backgroundImage="url('"+r.src.replace(/'/g,"%27")+"')";el.innerHTML="<i>위키백과</i>";el.title=r.title+" (사진: 위키백과)"};
+        var img=new Image();img.onload=function(){el.style.backgroundImage="url('"+r.src.replace(/'/g,"%27")+"')";el.innerHTML="<b>눌러서 크게 보기</b><i>위키백과</i>";el.classList.add("ok");el.setAttribute("role","button");el.setAttribute("tabindex","0");el.removeAttribute("aria-hidden");el.setAttribute("aria-label",name+" 사진 크게 보기");el._ph={src:r.src,title:r.title,name:name,lang:r.lang}};
         img.onerror=function(){el.classList.add("none")};img.src=r.src});
     });
   }
+  var box=document.createElement("div");box.className="phbox";box.hidden=true;box.setAttribute("role","dialog");box.setAttribute("aria-modal","true");box.setAttribute("aria-label","사진 크게 보기");
+  box.innerHTML='<button class="phx" type="button" aria-label="닫기">×</button><img alt=""><div class="phcap"></div>';document.body.appendChild(box);
+  var bimg=box.querySelector("img"),bcap=box.querySelector(".phcap"),last=null;
+  function openPh(el){var d=el._ph;if(!d)return;last=el;bimg.src=d.src;bimg.alt=d.name;
+    var big=d.src.replace(/\/(\d+)px-/,"/1280px-");if(big!==d.src){var im=new Image();im.onload=function(){if(last===el)bimg.src=big};im.src=big}
+    var page="https://"+d.lang+".wikipedia.org/wiki/"+encodeURIComponent(d.title.replace(/ /g,"_"));
+    bcap.innerHTML="";var t=document.createElement("span");t.textContent=d.name;bcap.appendChild(t);
+    var sm=document.createElement("small");sm.innerHTML='사진: <a href="'+page+'" target="_blank" rel="noopener" style="color:#fff">위키백과 ‘'+d.title.replace(/[<>&"]/g,"")+'’</a> · 화면을 누르면 닫혀요';bcap.appendChild(sm);
+    box.hidden=false;document.body.style.overflow="hidden";box.querySelector(".phx").focus({preventScroll:true})}
+  function closePh(){if(box.hidden)return;box.hidden=true;bimg.removeAttribute("src");document.body.style.overflow="";if(last)last.focus({preventScroll:true})}
+  box.addEventListener("click",function(e){if(e.target.closest("a"))return;closePh()});
+  document.addEventListener("keydown",function(e){if(e.key==="Escape")closePh();var el=e.target.closest&&e.target.closest(".sphoto.ok");if(el&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openPh(el)}});
+  document.addEventListener("click",function(e){var el=e.target.closest&&e.target.closest(".sphoto.ok");if(el)openPh(el)});
   new MutationObserver(function(ms){ms.forEach(function(m){m.addedNodes.forEach(function(n){if(n.nodeType===1)hydrate(n)})})}).observe(document.body,{childList:true,subtree:true});
   hydrate(document);
 })();
