@@ -572,6 +572,13 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 .ralt.rhint::before{content:none;display:none}
 .rhint{display:block;font-size:13px;color:var(--muted);line-height:1.45;margin-top:4px}.rhint b{color:var(--ink)}
 
+.swfit{display:inline-block;vertical-align:2px;margin-left:8px;padding:2px 8px;border-radius:99px;font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums;background:var(--chip);color:var(--ink);white-space:nowrap}
+.swfit.hi{background:var(--good);color:#fff}
+.swfit.lo{background:transparent;border:1.5px solid var(--line);color:var(--muted)}
+.swfit.now{font-size:13px;vertical-align:3px}
+.cm .up{color:var(--good)}
+.sh .sclose{white-space:nowrap;flex:none}.sh h2{min-width:0}
+
 /* 명소 대표 사진(위키백과) — 테스트 */
 .sphoto{display:block;width:100%;height:150px;margin:8px 0 10px;border-radius:12px;background:var(--chip) center/cover no-repeat;position:relative;overflow:hidden}
 .sphoto.none{display:none}
@@ -1772,7 +1779,7 @@ function renderAdd(){
   const P=st.draft,used=inPlan(P);
   $("sheetCats").innerHTML=[["all","전체"],["s","명소"],["f","식사"],["c","카페·간식"],["n","저녁·야경"]].map(([k,l])=>`<button data-k="${k}" aria-pressed="${st.sheetCat===k}">${l}</button>`).join("");
   const list=ranked(CITY[P.city].p.filter(p=>!used.has(p[0])&&(st.sheetCat==="all"||p[1]===st.sheetCat)),P.prof,false);
-  $("cands").innerHTML=list.length?list.map((p,k)=>{const f=pct(p,P.prof);return `<li><span class="cn">${esc(p[0])}</span><span class="cm">${CAT[p[1]]}${f===null?"":` · 궁합 ${f}%`} · ${esc(p[5])}</span><button data-k="${k}">추가</button></li>`}).join("")
+  $("cands").innerHTML=list.length?list.map((p,k)=>{const f=pct(p,P.prof);return `<li><span class="cn">${esc(p[0])}${f===null?"":`<span class="swfit${f>=70?" hi":f<45?" lo":""}">궁합 ${f}%</span>`}</span><span class="cm">${CAT[p[1]]} · ${esc(p[5])}</span><button data-k="${k}">추가</button></li>`}).join("")
     :`<li><span class="cm">이 분류에서 남은 추천 장소가 없어요. 아래에 직접 입력해 보세요.</span></li>`;
   $("cands").onclick=e=>{const b=e.target.closest("button");if(b)addStop(list[+b.dataset.k])};
 }
@@ -2379,11 +2386,13 @@ function renderSwap(){
   const D=swapData();if(!D){closeSheet();return}
   const {P,pr,stop,refName,same,free,cands}=D,kw=SWAPKW[stop.cat]||"가볼 만한 곳";
   $("swTitle").textContent=D.isFr?"자유 시간 채우기":`${stop.p[0]} 대신`;
+  {const c0=D.isFr||stop.custom?null:pct(stop.p,pr);$("swTitle").innerHTML=esc($("swTitle").textContent)+(c0===null?"":` <span class="swfit now">지금 궁합 ${c0}%</span>`);}
   $("swNote").innerHTML=D.isFr?`이 앱에 등록된 ${esc(P.city)} 장소 <b>${D.total}곳</b> 중 아직 코스에 없는 곳은 <b>${D.left}곳</b>이에요.${D.left?" 가까운 순으로 보여 드려요.":" 모두 코스에 들어가 있어서, 아래 지도 검색이나 직접 입력으로 채워 주세요."}`:`이 앱에 등록된 ${esc(P.city)} ${CAT[stop.cat]||"장소"}는 <b>${same.length}곳</b>이고, 그중 <b>${same.length-free.length}곳</b>이 이미 코스에 있어요.${free.length?"":" 같은 종류로 남은 곳이 없어 근처 다른 종류를 보여 드려요."}`;
+  const cur=D.isFr||stop.custom?null:pct(stop.p,pr);
   const row=c=>{const f=pct(c.p,pr),I=INFO[c.p[0]];
     return `<li class="swrow${st.swap.sel===c.n?" sel":""}" id="swr-${c.n}"><span class="swn ${c.kind}">${c.n}</span>
-      <span class="swb"><span class="cn">${esc(c.p[0])}</span>
-        <span class="cm">${CAT[c.p[1]]}${f===null?"":` · 궁합 ${f}%`}${isIndoor(c.p)?" · 실내":" · 야외"}</span>
+      <span class="swb"><span class="cn">${esc(c.p[0])}${f===null?"":`<span class="swfit${f>=70?" hi":f<45?" lo":""}">궁합 ${f}%</span>`}</span>
+        <span class="cm">${CAT[c.p[1]]}${isIndoor(c.p)?" · 실내":" · 야외"}${cur!==null&&f!==null&&!D.isFr?(f>cur?` · 지금보다 <b class="up">+${f-cur}%p</b>`:f<cur?` · 지금보다 ${f-cur}%p`:" · 지금과 같아요"):""}</span>
         <span class="swloc">${c.co?`${esc(refName)}에서 <b>${dirTxt(D.ref,c.co)} ${kmTxt(c.km)}</b>${c.L?` · ${c.L.mode} 약 ${fmtDur(c.L.min)}`:""}`:"위치 정보 없음"}</span>
         ${I?`<span class="swaddr">${esc(I[0])}</span><span class="cm"><b>${esc(I[1])}</b> · ${esc(I[2])}${I[3]?" · "+esc(I[3]):""}</span>`:`<span class="cm">${esc(c.p[5])}</span>`}
         <span class="swacts"><button class="ghost" data-show="${c.n}">지도에 표시</button><a href="${placeURL(c.p[0],P.city)}" target="_blank" rel="noopener">정확한 위치 보기</a>${c.co?routeLinks(P.city,{name:refName,co:D.ref},{name:c.p[0],co:c.co},c.L,"길찾기"):""}</span>
