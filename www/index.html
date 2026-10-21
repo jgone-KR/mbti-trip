@@ -765,6 +765,15 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 .aiuse .big{font-size:22px;font-weight:800;margin:4px 0 2px}
 .aiuse .bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:6px 0 4px}
 .aiuse .bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+
+/* 나이대 */
+.agef{display:flex;flex-direction:column;gap:8px;padding:12px 0 4px;border-top:1px solid var(--line)}
+.agef .fl{font-size:13px;color:var(--muted)}.agef .fl small{font-weight:400}
+.agechips{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.agechips button{all:unset;box-sizing:border-box;cursor:pointer;text-align:center;padding:9px 2px;border-radius:10px;background:var(--chip);font-weight:700;font-size:14px;white-space:nowrap}
+.agechips button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.agef .fhelp{font-size:12.5px;color:var(--muted);line-height:1.45}
+.why .agew{background:var(--gold-bg)}
 </style>
 
 <div class="onb" id="onb" role="dialog" aria-modal="true" aria-label="앱 사용법" hidden>
@@ -832,6 +841,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
       <button class="field" type="button" id="fDates"><span class="fi"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span><span class="ft"><span class="fl">여행 날짜</span><span class="fv" id="vDate"></span><span class="fsub" id="vLen"></span></span><span class="chev">›</span></button><input type="date" id="date" hidden aria-hidden="true" tabindex="-1">
       <div class="field" style="cursor:default"><span class="fi"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span><span class="ft"><span class="fl">현지 일정 시간</span><span class="tpair"><label class="tbtn pk"><span id="vDep"></span><input type="time" id="dep" class="ghost" aria-label="첫날 첫 일정 시작 시간"></label><span class="arr">→</span><label class="tbtn pk"><span id="vRet"></span><input type="time" id="ret" class="ghost" aria-label="마지막 날 일정 마무리 시간"></label></span><span class="fhelp">교통편 시간 말고, 여행지에서 첫 일정을 시작하고 마지막 날 일정을 마무리할 시간</span><span class="fhelp thint" id="timeHint" hidden></span></span><span></span></div>
       <button class="field" id="fMe"><span class="fi"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span><span class="ft"><span class="fl">내 여행 성향</span><span class="fv" id="vMe"></span></span><span class="chev">›</span></button>
+      <div class="agef"><span class="fl">나이대 <small>(선택 · 같이 가는 사람 기준)</small></span><div class="agechips" id="ageChips" role="group" aria-label="나이대"></div><span class="fhelp" id="ageHelp"></span></div>
       <div class="lenseg" id="lens" role="group" aria-label="기간"></div>
       <div class="reqbox"><span class="fl">추가 요청 <small>(선택)</small></span>
         <div class="reqchips" id="reqChips" role="group" aria-label="자주 쓰는 요청"></div>
@@ -944,6 +954,13 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
         <li>계획형(J)은 랜덤 폭이 작아 정확한 시간표로, 즉흥형(P)은 랜덤 폭이 커서 뽑을 때마다 크게 달라지고 시간도 느슨하게 표시돼요.</li>
         <li>장소 옆 '궁합 %'는 랜덤을 뺀 궁합 점수예요. 태그는 내 성향과 강하게 맞는 축이에요.</li>
       </ol>
+      <h3>나이대를 골랐을 때</h3>
+      <ul>
+        <li>장소 이름·설명·대표 메뉴에 담긴 특징(팝업, 포차, 노포, 사찰, 온천 등)으로 나이대별 선호 점수를 −1.3부터 +1.3까지 매겨 궁합 점수에 더해요.</li>
+        <li>10대는 술집을 빼고 체험·디저트·쇼핑을, 20대는 핫플·감성 카페·포차를, 30대는 미술관·분위기 맛집·바다 풍경을, 40·50대는 노포·시장·역사 명소를 더 높게 쳐요.</li>
+        <li>60대 이상은 하루 명소를 한 곳 줄이고, 다음 장소를 더 가까운 곳으로 골라 덜 걷게 짜요.</li>
+        <li>나이대 점수가 높은 곳에는 '20대 취향'처럼 표시돼요. 같이 가는 사람이 섞여 있으면 더 많이 맞춰 줄 쪽을 고르세요.</li>
+      </ul>
       <h3>AI 사용 횟수</h3>
       <div class="aiuse" data-aiuse></div>
       <h3>설문으로 검사했을 때</h3>
@@ -1620,8 +1637,50 @@ function nextSat(){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+
 function dLabel(iso,off=0){if(!iso||!/^\d{4}-\d\d-\d\d$/.test(iso))return"";const d=parseD(iso);d.setDate(d.getDate()+off);return `${d.getMonth()+1}.${d.getDate()} (${DOW[d.getDay()]})`}
 const rangeLabel=(iso,len)=>nightsOf(len)&&iso?dLabel(iso)+" – "+dLabel(iso,nightsOf(len)):dLabel(iso);
 
+/* ---------- 나이대 ---------- */
+// 장소 이름·설명·대표 메뉴의 단어로 나이대별 선호를 어림해요. +면 그 나이대가 좋아할 만한 곳, −면 덜 맞는 곳.
+const AGES={
+  "10대":{short:"10대",help:"테마파크·체험·디저트·쇼핑 위주, 술집은 빼고 짜요.",ax:{e:.3,n:.2},kw:[
+    [/테마파크|놀이|유니버설|디즈니|월드|랜드|아쿠아리움|수족관|동물원|체험|만들기|캐릭터|애니|만화|게임|오락|아케이드|굿즈|포토|인생샷|스티커/,1],
+    [/디저트|젤라또|아이스크림|빙수|크레페|탕후루|와플|도넛|빵|베이커리|떡볶이|분식|버거|치킨|간식|길거리 음식|야시장|쇼핑|거리|팝업|소품/,.6],
+    [/루지|카트|짚라인|서핑|스노클|케이블카|전망대|스카이/,.5],
+    [/술|맥주|생맥|노가리|포차|펍|칵테일|바$|이자카야|와인|사케|막걸리|소주|클럽|위스키|하이볼/,-1.6],
+    [/노포|설렁탕|곰탕|평양냉면|한정식|사찰|절$|고택|다원|찻집|박물관/,-.5]]},
+  "20대":{short:"20대",help:"핫플·감성 카페·야시장·포차, 사진 잘 나오는 곳 위주로 짜요.",ax:{e:.25,n:.3},kw:[
+    [/팝업|핫플|감성|힙|트렌디|소품|편집숍|빈티지|플리마켓|마켓|인생샷|포토|사진|루프탑|버스킹|레트로|골목|거리|카페거리|오션뷰/,1],
+    [/포차|펍|칵테일|수제맥주|생맥|노가리|이자카야|하이볼|야시장|클럽|바$|야경/,.8],
+    [/디저트|베이커리|빵|브런치|젤라또|크레페|도넛|로스터리|스페셜티/,.6],
+    [/테마파크|유니버설|루지|서핑|스노클|짚라인|카트|액티비티|전망대|스카이/,.5],
+    [/한정식|사찰|다원|고택|정원|설렁탕|곰탕|1\d{3}년|100년|원조/,-.4]]},
+  "30대":{short:"30대",help:"분위기 좋은 맛집·미술관·바다 풍경, 너무 붐비지 않는 곳을 섞어요.",ax:{n:.15,f:.15},kw:[
+    [/미술관|갤러리|전시|건축|디자인|편집숍|로스터리|스페셜티|브런치|와인|오마카세|다이닝|스테이크|비스트로|위스키|하이볼/,1],
+    [/오션뷰|바다|해변|노을|풍경|산책|숲길|정원|호수|야경|전망/,.6],
+    [/맛집|현지|시장|골목|레트로|감성/,.3],
+    [/테마파크|캐릭터|아케이드|탕후루|클럽/,-.5]]},
+  "40·50대":{short:"40·50대",help:"검증된 맛집·노포·시장, 풍경 좋은 산책과 역사 명소를 넉넉하게 넣어요.",ax:{e:-.05,n:-.25},kw:[
+    [/노포|원조|1\d{3}년|100년|오래|전통|한정식|국밥|곰탕|설렁탕|냉면|해산물|회|게장|갈비|수산|시장/,1],
+    [/궁|성곽|사찰|절$|사원|신사|고택|한옥|정원|숲|공원|호수|역사|박물관|유적|성당|성$/,.8],
+    [/바다|해변|노을|풍경|전망|케이블카|유람선|크루즈|온천|야경/,.6],
+    [/팝업|클럽|코스프레|아케이드|탕후루|루지|서핑|짚라인/,-.8]]},
+  "60대+":{short:"60대+",help:"걷기 편한 궁·사찰·정원·온천과 편한 식당 위주로, 일정을 한 곳 줄이고 가깝게 묶어요.",ax:{e:-.3,n:-.35},slow:true,kw:[
+    [/사찰|절$|사원|신사|궁|정원|공원|호수|고택|한옥|다원|찻집|차$|온천|유람선|크루즈|케이블카|박물관|역사|성당/,1],
+    [/한정식|노포|원조|전통|국밥|곰탕|설렁탕|냉면|해산물|회|백반|정식|시장/,.8],
+    [/바다|노을|풍경|전망|산책|야경/,.4],
+    [/팝업|클럽|포차|펍|칵테일|이자카야|코스프레|아케이드|게임|루지|서핑|짚라인|카트|스노클|등산|오르막|계단|줄이 길|웨이팅|인생샷|탕후루|힙/,-1.2]]}
+};
+const AGEW=1.1,AGEC={};
+function ageFit(p,age){
+  const A=age&&AGES[age];if(!A||!p||!p[0])return 0;
+  const key=age+"|"+p[0];if(key in AGEC)return AGEC[key];
+  const I=typeof INFO!=="undefined"&&INFO[p[0]],t=[p[0],p[5]||"",I?I[1]:""].join(" ");
+  let v=0;for(const [re,w] of A.kw)if(re.test(t))v+=w;
+  v+=(p[2]||0)*(A.ax.e||0)+(p[3]||0)*(A.ax.n||0)+(p[4]||0)*(A.ax.f||0);
+  if(/(사|궁|신사|사원|성당|성)$/.test(p[0]))v+=({"10대":-.3,"40·50대":.6,"60대+":.8})[age]||0;
+  if(p[1]==="n"&&age==="10대"&&/술|맥주|포차|펍|바\b|이자카야/.test(t))v-=.5;
+  return AGEC[key]=Math.max(-1.3,Math.min(1.3,v));
+}
 /* ---------- 상태 ---------- */
-const st={page:"home",hist:[],mode:"mbti",mbti:["E","N","F","P"],ans:[1,1,1,1,0,1],country:"일본",city:"도쿄",len:"하루",date:nextSat(),dep:10,ret:21,
+const st={page:"home",hist:[],mode:"mbti",mbti:["E","N","F","P"],ans:[1,1,1,1,0,1],country:"일본",city:"도쿄",len:"하루",date:nextSat(),dep:10,ret:21,age:"",
   rec:null,draft:null,dirty:false,sheetCat:"all",sheetDay:0,csCountry:"일본",openSheet:null,delArm:null,toPlanArm:false,newArm:false};
 try{const s=JSON.parse(localStorage.getItem("mbtiTrip3")||localStorage.getItem("mbtiTrip2")||"null");
   if(s){
@@ -1632,28 +1691,30 @@ try{const s=JSON.parse(localStorage.getItem("mbtiTrip3")||localStorage.getItem("
   if(LENS[s.len])st.len=s.len;
   if(typeof s.dep==="number"&&s.dep>=0&&s.dep<24)st.dep=s.dep;
   if(typeof s.ret==="number"&&s.ret>0&&s.ret<=24)st.ret=s.ret;
+  if(typeof s.age==="string"&&(s.age===""||AGES[s.age]))st.age=s.age;
   if(typeof s.date==="string"&&/^\d{4}-\d\d-\d\d$/.test(s.date)&&s.date>=todayIso())st.date=s.date;}}catch(e){}
-const savePrefs=()=>{try{localStorage.setItem("mbtiTrip3",JSON.stringify({mode:st.mode,mbti:st.mbti,ans:st.ans,city:st.city,len:st.len,date:st.date,dep:st.dep,ret:st.ret}))}catch(e){}};
+const savePrefs=()=>{try{localStorage.setItem("mbtiTrip3",JSON.stringify({mode:st.mode,mbti:st.mbti,ans:st.ans,city:st.city,len:st.len,date:st.date,dep:st.dep,ret:st.ret,age:st.age}))}catch(e){}};
 
 /* ---------- 성향 ---------- */
 function profile(){
-  if(st.mode==="mbti"){const m=st.mbti;return{e:m[0]==="E"?1:-1,n:m[1]==="N"?1:-1,f:m[2]==="F"?1:-1,jit:m[3]==="P"?.9:.35,focus:"",pace:"mid",code:m.join(""),src:"mbti"}}
+  if(st.mode==="mbti"){const m=st.mbti;return{e:m[0]==="E"?1:-1,n:m[1]==="N"?1:-1,f:m[2]==="F"?1:-1,jit:m[3]==="P"?.9:.35,focus:"",pace:"mid",code:m.join(""),src:"mbti",age:st.age}}
   const [e,n,f,jit,focus,pace]=SURVEY.map((s,i)=>s.o[st.ans[i]][1]);
   const code=(e>0?"E":e<0?"I":"X")+(n>0?"N":n<0?"S":"X")+(f>0?"F":f<0?"T":"X")+(jit>=.5?"P":"J");
-  return{e,n,f,jit,focus,pace,code,src:"survey"};
+  return{e,n,f,jit,focus,pace,code,src:"survey",age:st.age};
 }
-const sig=pr=>[pr.src,pr.e,pr.n,pr.f,pr.jit,pr.focus,pr.pace].join("|");
+const sig=pr=>[pr.src,pr.e,pr.n,pr.f,pr.jit,pr.focus,pr.pace,pr.age||""].join("|");
 function describe(pr){
   if(pr.src==="mbti")return TYPES[pr.code];
   const parts=[SDESC[0][pr.e],SDESC[1][pr.n],SDESC[2][pr.f]].filter(Boolean);
   parts.push(FOCUSNAME[pr.focus]);
   return parts.join(" · ");
 }
-const fitRaw=(p,pr)=>p[2]*pr.e+p[3]*pr.n+p[4]*pr.f;
-const pct=(p,pr)=>{const S=Math.abs(pr.e)+Math.abs(pr.n)+Math.abs(pr.f);return S?Math.round((fitRaw(p,pr)+S)/(2*S)*100):null};
+const fitRaw=(p,pr)=>p[2]*pr.e+p[3]*pr.n+p[4]*pr.f+(pr.age?ageFit(p,pr.age)*AGEW:0);
+const pct=(p,pr)=>{const S=Math.abs(pr.e)+Math.abs(pr.n)+Math.abs(pr.f)+(pr.age&&AGES[pr.age]?AGEW*1.3:0);return S?Math.round((fitRaw(p,pr)+S)/(2*S)*100):null};
 const ranked=(list,pr,rand=true)=>list.map(p=>[fitRaw(p,pr)+(rand?Math.random()*pr.jit:0),p]).sort((a,b)=>b[0]-a[0]).map(x=>x[1]);
 function reasons(p,pr){
   const out=[];[[2,"e","E","I"],[3,"n","N","S"],[4,"f","F","T"]].forEach(([i,k,pos,neg])=>{const u=pr[k];if(u&&p[i]*Math.sign(u)>=.4)out.push(u>0?pos:neg)});
+  if(pr.age&&AGES[pr.age]&&ageFit(p,pr.age)>=.6)out.push("AGE:"+pr.age);
   return out;
 }
 
@@ -1669,6 +1730,7 @@ function template(len,pr){
     if(pr.focus==="food"){const t=slots.find(s=>s.c==="s"&&s.h>=13.5);if(t)slots.push({c:"c",h:t.h+1})}
     if(pr.focus==="rest"){dropSpot();slots.sort((a,b)=>a.h-b.h);slots[0].h=Math.min(slots[0].h+1,slots[1]?slots[1].h-.5:slots[0].h+1)}
     if(pr.pace==="low")dropSpot();
+    if(pr.age&&AGES[pr.age]&&AGES[pr.age].slow&&pr.pace!=="low"&&pr.focus!=="rest")dropSpot();
     return slots.sort((a,b)=>a.h-b.h);
   });
 }
@@ -1681,7 +1743,7 @@ function build(){
   const pr=profile(),pool=CITY[st.city].p,used=new Set(),tpl=template(st.len,pr),n=tpl.length;
   const win=tpl.map((_,d)=>winFor(d,n));let shortDay=null;
   const pickFrom=(list,prev)=>{const pc=prev&&!prev.custom?COORD[prev.p[0]]:null;
-    const rec=RECENT[st.city];return list.map(p=>[fitRaw(p,pr)+Math.random()*Math.max(pr.jit,.45)-(rec&&rec.has(p[0])?.9:0)-(pc&&COORD[p[0]]?haversine(pc,COORD[p[0]])/(n>2?8:15):0),p]).sort((a,b)=>b[0]-a[0]).map(x=>x[1])[0]};
+    const rec=RECENT[st.city];return list.map(p=>[fitRaw(p,pr)+Math.random()*Math.max(pr.jit,.45)-(rec&&rec.has(p[0])?.9:0)-(pc&&COORD[p[0]]?haversine(pc,COORD[p[0]])/((n>2?8:15)*(pr.age&&AGES[pr.age]&&AGES[pr.age].slow?.5:1)):0),p]).sort((a,b)=>b[0]-a[0]).map(x=>x[1])[0]};
   const days=tpl.map((day,d)=>{
     const [S,E]=win[d];let slots=day.filter(s=>s.h>=S-.5);if(!slots.length)slots=day.slice(-1);
     const out=[];
@@ -1883,7 +1945,7 @@ async function aiRec(prev){
 [여행 조건]
 도시: ${base.city} / 날짜: ${rangeLabel(base.date,base.len)} (${n}일) / 기간: ${base.len}
 현지 일정 시간: 첫날 ${fmt(base.dep)} 시작, 마지막 날 ${fmt(base.ret)} 마무리 (중간 날은 09:30~21:30)
-여행 성향: ${pr.code} (${describe(pr)})
+여행 성향: ${pr.code} (${describe(pr)})${pr.age?` / 나이대: ${pr.age} (${AGES[pr.age].help})`:""}
 
 [사용자 추가 요청]
 ${req}
@@ -1923,6 +1985,8 @@ function renderHome(){
   $("meChip").textContent=pr.code;
   $("vCity").textContent=`${st.city}, ${st.country}`;
   $("vMe").textContent=`${pr.code} · ${describe(pr)}`;
+  $("ageChips").innerHTML=Object.keys(AGES).map(a=>`<button type="button" data-age="${a}" aria-pressed="${st.age===a}">${AGES[a].short}</button>`).join("");
+  $("ageHelp").textContent=st.age?AGES[st.age].help+" 다시 누르면 해제돼요.":"고르면 그 나이대가 좋아할 곳 위주로 코스를 짜요. 안 골라도 돼요.";
   const di=$("date");di.min=todayIso();di.value=st.date;
   $("dep").value=fmt(st.dep);$("ret").value=fmt(st.ret);
   {const nn=nightsOf(st.len);$("vDate").textContent=st.date?(nn?`${dLabel(st.date)} – ${dLabel(st.date,nn)}`:dLabel(st.date)):"날짜 고르기";$("vLen").textContent=nn?st.len:st.len==="반나절"?"반나절 · 짧게 둘러보기":"당일치기";}
@@ -1953,6 +2017,7 @@ $("calGrid").onclick=e=>{const b=e.target.closest("button[data-d]");if(!b||b.dis
 $("calOk").onclick=()=>{const n=Math.round((parseD(CAL.b)-parseD(CAL.a))/864e5);st.date=CAL.a;st.len=n?lenOf(Math.min(n,MAXN)):(st.ret-st.dep<=5?"반나절":"하루");savePrefs();closeSheet();renderHome();toast(n?`${dLabel(CAL.a)}부터 ${n}박 ${n+1}일로 정했어요`:`${dLabel(CAL.a)} 당일치기로 정했어요`)};
 $("date").addEventListener("change",e=>{if(e.target.value){st.date=e.target.value;savePrefs();renderHome()}});
 $("fMe").onclick=()=>go("test");
+$("ageChips").addEventListener("click",e=>{const b=e.target.closest("[data-age]");if(!b)return;st.age=st.age===b.dataset.age?"":b.dataset.age;savePrefs();renderHome();if(typeof renderRecSum==="function"&&st.page==="rec")renderRecSum()});
 ["dep","ret"].forEach(k=>$(k).addEventListener("change",e=>{
   if(!e.target.value)return;const [h1,m1]=e.target.value.split(":").map(Number),v=h1+m1/60;
   const dep=k==="dep"?v:st.dep,ret=k==="ret"?v:st.ret;
@@ -2011,7 +2076,7 @@ const TOPLAN="<b>고치고 저장</b><small>시간·순서 편집</small>";
 function renderRecSum(){
   const P=st.rec;
   const chip=(k,v)=>`<span class="cchip2"><i>${k}</i>${v}</span>`;
-  $("recSum").innerHTML=chip("여행지",esc(P.city))+chip("날짜",esc(rangeLabel(P.date,P.len)))+chip("기간",esc(P.len==="하루"?"당일":P.len))+chip("현지 일정",fmt(P.dep)+"–"+fmt(P.ret))+chip("성향",`<b>${esc(P.prof.code)}</b>`);
+  $("recSum").innerHTML=chip("여행지",esc(P.city))+chip("날짜",esc(rangeLabel(P.date,P.len)))+chip("기간",esc(P.len==="하루"?"당일":P.len))+chip("현지 일정",fmt(P.dep)+"–"+fmt(P.ret))+chip("성향",`<b>${esc(P.prof.code)}</b>`)+(P.prof.age&&AGES[P.prof.age]?chip("나이대",esc(AGES[P.prof.age].short)):"");
 }
 const condHome=document.querySelector("#pg-home .search");
 const condMark=document.createComment("search-home");condHome.parentNode.insertBefore(condMark,condHome);
@@ -2043,7 +2108,7 @@ function stopHTML(w,s,d,i,last){
   const fr=isFreeStop(s);
   if(fr&&w!=="view"){acts=(ed?`<button data-act="up" data-d="${d}" data-i="${i}" ${i===0?"disabled":""}>위로</button><button data-act="down" data-d="${d}" data-i="${i}" ${i===last?"disabled":""}>아래로</button><button class="del" data-act="del" data-d="${d}" data-i="${i}">빼기</button>`:"")+`<button class="fillbtn" data-act="other" data-d="${d}" data-i="${i}">장소로 채우기 ›</button>`}
   else if(fr)acts="";
-  const why=fr?`<span>빈 시간</span>`:custom?`<span>직접 추가</span>`:(r.length?r.map(ch=>`<span><b>${ch}</b>${WHY[ch]}</span>`).join(""):`<span>시간대 균형으로 넣은 곳</span>`);
+  const why=fr?`<span>빈 시간</span>`:custom?`<span>직접 추가</span>`:(r.length?r.map(ch=>ch.startsWith("AGE:")?`<span class="agew"><b>${esc(AGES[ch.slice(4)]?AGES[ch.slice(4)].short:"")}</b>취향</span>`:`<span><b>${ch}</b>${WHY[ch]}</span>`).join(""):`<span>시간대 균형으로 넣은 곳</span>`);
   return `<li class="stop${ed?" ed":""}${custom?" free":""}"><div class="rail"><span class="num" aria-hidden="true">${i+1}</span></div>
     <div class="scard"><div class="shead"><span class="time ${!ed&&lz?"loose":""}">${time}</span><span class="catchip c-${s.cat}">${CAT[s.cat]||"기타"}</span>${fit===null?"":`<span class="fit">궁합 ${fit}%</span>`}</div>
     ${!custom&&(s.cat==="s"||s.cat==="n")?`<span class="sphoto" data-ph="${esc(s.p[0])}" data-city="${esc(P.city)}" aria-hidden="true"></span>`:""}<span class="name"><span class="sr">${i+1}번째 </span>${esc(s.p[0])}</span><span class="note">${esc(s.p[5])}</span>${custom?"":infoHTML(s.p[0],P.city)}
@@ -2582,7 +2647,7 @@ async function aiProposal(kind,text,draft){
 [지금 상황]
 도시: ${LV.city} / 현지 시각: ${fmt(now)} / 일몰: ${sun==null?"알 수 없음":fmt(sun)} (${sun==null?"":sun>now?Math.round((sun-now)*60)+"분 남음":"이미 짐"})
 동행: ${LV.who} / 이동수단: ${MOVES[LV.move]} / 날씨(사용자 입력): ${LV.weather}
-현재 위치: ${locLabel()} / 여행 성향: ${pr.code} (${describe(pr)})
+현재 위치: ${locLabel()} / 여행 성향: ${pr.code} (${describe(pr)})${pr.age?` / 나이대: ${pr.age}`:""}
 이미 다녀온 곳: ${LV.visited.join(", ")||"없음"}
 
 [남은 일정]
