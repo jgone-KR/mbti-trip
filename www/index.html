@@ -669,6 +669,24 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 .hotelacts{display:flex;gap:14px;margin-top:8px}
 .hotelacts button{all:unset;cursor:pointer;font-size:14px;font-weight:700;color:var(--accent)}
 .hotelacts button:focus-visible,.hres button:focus-visible,.hotelf button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* 화면별 도움말(코치마크) */
+.helpq{all:unset;cursor:pointer;margin-left:auto;width:34px;height:34px;border-radius:999px;display:grid;place-items:center;background:var(--chip);color:var(--ink);font-weight:800;font-size:17px;flex:none}
+.helpq:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.subbar{display:flex;align-items:center}
+.tourov{position:fixed;inset:0;z-index:160;background:transparent}
+.tourhl{position:fixed;z-index:161;border-radius:14px;box-shadow:0 0 0 9999px rgba(10,12,14,.62),0 0 0 3px var(--accent);pointer-events:none;transition:all .25s ease}
+.tourbub{position:fixed;z-index:162;left:16px;right:16px;max-width:380px;margin:0 auto;background:var(--paper);color:var(--ink);border-radius:16px;padding:14px 16px 12px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.tourbub .tst{font-size:12.5px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.tourbub h3{margin:2px 0 6px;font-size:17px}
+.tourbub p{margin:0;font-size:15px;line-height:1.6;color:var(--ink)}
+.tourbub .tbtns{display:flex;align-items:center;gap:8px;margin-top:12px}
+.tourbub .tbtns button{all:unset;cursor:pointer;padding:9px 14px;border-radius:999px;font-weight:800;font-size:14.5px}
+.tourbub .tbtns .tskip{color:var(--muted);margin-right:auto;padding-left:0!important}
+.tourbub .tbtns .tprev{background:var(--chip)}
+.tourbub .tbtns .tnext{background:var(--accent);color:var(--accent-ink)}
+.tourbub button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.tourhl{transition:none}}
 </style>
 
 <div class="onb" id="onb" role="dialog" aria-modal="true" aria-label="앱 사용법" hidden>
@@ -823,6 +841,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
   <section class="page" id="pg-how" aria-labelledby="hHow" hidden>
     <div class="subbar"><button class="back" aria-label="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="hHow">추천 기준</h1></div>
     <button class="linkbtn" type="button" onclick="window.showOnboarding&&window.showOnboarding()" style="margin:0 0 14px">앱 사용법 다시 보기</button>
+    <button class="linkbtn" type="button" onclick="window.resetTours&&window.resetTours();toast('화면별 도움말을 다시 켰어요. 각 화면에 들어가면 다시 나와요')" style="margin:0 0 14px">화면별 도움말 다시 켜기</button>
     <div class="howbody">
       <p>모든 장소에는 세 가지 성향 점수가 −1부터 +1까지 붙어 있어요. 내 성향과 방향이 같을수록 점수가 올라가요.</p>
       <table class="axtable">
@@ -2390,7 +2409,7 @@ function renderLive(){
   if(!LV.city)loadLiveFrom(st.draft?"draft":"rec");
   const now=nowH(),sun=sunsetH(LV.city),toSun=sun==null?null:Math.round((sun-now)*60);
   const kr=CITYTZ[LV.city]==="Asia/Seoul"||!CITYTZ[LV.city],kNow=cityParts("서울").h;
-  $("ctxLine").innerHTML=`<b>${LV.timeMode==="custom"?"정한 시각 ":kr?"":"현지 "}${fmt(now)}</b>${!kr&&LV.timeMode!=="custom"?`<small class="kst">한국 ${fmt(kNow)}</small>`:""}<span>/</span><b>${esc(LV.city)}</b><span>/</span><b>${LV.who}</b><span>/</span><b>${MOVES[LV.move]}</b>`;
+  $("ctxLine").innerHTML=`<b>${LV.timeMode==="custom"?"정한 시각 ":kr||Math.abs(kNow-now)<=.01?"":"현지 "}${fmt(now)}</b>${!kr&&LV.timeMode!=="custom"&&Math.abs(kNow-now)>.01?`<small class="kst">한국 ${fmt(kNow)}</small>`:""}<span>/</span><b>${esc(LV.city)}</b><span>/</span><b>${LV.who}</b><span>/</span><b>${MOVES[LV.move]}</b>`;
   const chips=[];
   if(toSun!=null)chips.push(toSun>0&&toSun<=120?`<span class="lchip sun">일몰까지 ${toSun}분</span>`:toSun>0?`<span class="lchip">일몰 ${fmt(sun)}</span>`:`<span class="lchip">해가 졌어요 · 야경 시간</span>`);
   chips.push(`<span class="lchip ${LV.weather==="비"?"rain":""}">날씨 ${LV.weather}</span>`);
@@ -2734,6 +2753,79 @@ document.addEventListener("click",e=>{const g=e.target.closest&&e.target.closest
   new MutationObserver(function(ms){ms.forEach(function(m){m.addedNodes.forEach(function(n){if(n.nodeType===1)hydrate(n)})})}).observe(document.body,{childList:true,subtree:true});
   hydrate(document);
 })();
+</script>
+
+<script>
+/* 화면별 도움말: 처음 들어간 화면에서 한 번, 제목 옆 ? 버튼으로 다시 보기 */
+const TOURS={
+ rec:[["#recCond","추천 조건","여행지·날짜·기간·현지 일정·성향이에요. <b>조건 바꾸기</b>를 누르면 이 화면에서 바로 바꾸고 새 코스를 받을 수 있어요."],
+  ["#recTicket .dtabs","일차 보기","여러 날 여행이면 일차를 눌러 그날 일정만 볼 수 있어요. <b>전체</b>는 모든 날을 한 번에 보여 줘요."],
+  ["#recTicket .stop .acts","장소 버튼","<b>사진 보기</b>로 사진을, <b>지도</b>로 위치를 확인해요. <b>다른 곳</b>을 누르면 근처 다른 장소로 바꿀 수 있어요."],
+  ["#recTicket .leg","이동 정보","다음 장소까지 이동 수단과 예상 시간이에요. <b>길찾기</b>를 누르면 지도 앱 길찾기가 열려요."],
+  ["#pg-rec .recbar","아래 버튼","<b>다른 코스</b>: 같은 조건으로 새로 뽑기<br><b>복사</b>: 친구에게 보내기<br><b>고치고 저장</b>: 시간·순서를 고쳐 내 플랜에 저장"]],
+ live:[["#pg-live details.lsetbox","내 상황 설정","누구와, 무엇을 타고, 날씨는 어떤지 정해요. <b>현재 위치 불러오기</b>로 GPS 위치를 반영하고, 숙소도 여기서 찾아요."],
+  ["#aiCard","지금 상황","다음 장소와 도착 예정 시각을 알려 줘요. AI가 다시 짠 일정도 여기에 나와요."],
+  ["#quick","상황 버튼","계획이 틀어졌을 때 눌러요. 비, 웨이팅, 피곤함 같은 상황에 맞게 AI가 남은 일정을 다시 짜 줘요."],
+  ["#askForm","직접 말하기","버튼에 없는 상황은 글로 적어 보내세요. 예: 아이가 잠들었어요, 2시간 남았어요"],
+  ["#liveTl","남은 일정","도착하면 <b>여기 도착했어요</b>, 안 갈 곳은 <b>건너뛰기</b>를 눌러요. <b>길찾기</b>로 바로 출발해요."]],
+ planStart:[["#planStart","코스 짜기 시작","<b>추천 코스로 시작</b>하면 추천받은 코스를 가져와 고쳐요. <b>빈 코스로 시작</b>하면 원하는 곳을 하나씩 넣어요."]],
+ plan:[["#planTicket .win","하루 시간","첫 일정과 마무리 시간을 정해요. <b>시간 자동 맞추기</b>를 누르면 이동 시간에 맞춰 다시 계산해요."],
+  ["#planTicket .stop.ed .acts","장소 편집","<b>위로·아래로</b>로 순서를, <b>바꾸기</b>로 장소를, <b>빼기</b>로 삭제해요. 시간 칸을 누르면 시각을 바꿀 수 있어요."],
+  ["#planTicket .addbtn","장소 추가","목록에서 고르거나 직접 입력해서 장소를 넣어요."],
+  ["#planTicket .savebox","저장하기","이름을 붙여 저장하면 <b>내 플랜</b>에 모여요. 커뮤니티에 공유할 수도 있어요."]],
+ saved:[["#plans","내 플랜","저장한 코스가 모여요. 열어서 고치거나, <b>여행 중</b> 탭에서 이 코스로 여행할 수 있어요."],
+  ["#nickBox","닉네임","커뮤니티에 코스를 공유할 때 보일 이름이에요."]],
+ community:[["#comFilter","도시 고르기","보고 싶은 여행지를 골라요."],
+  ["#comSort","정렬","<b>최신순</b> 또는 <b>내 성향과 비슷한 순</b>으로 볼 수 있어요."],
+  ["#comList","코스 카드","앞 2곳은 무료로 미리 보고, 전체는 <b>20 크레딧</b>으로 열어요. 한 번 연 코스는 계속 무료예요."]],
+ wallet:[["#stamps","출석 체크","매일 출석하면 크레딧이 쌓여요. 1일차 50, 2~6일차 10, 7일차 30 크레딧이에요."],
+  ["#packs","크레딧 충전","지금은 테스트 모드라 실제로 돈이 나가지 않아요."]]
+};
+const TKEY="mbtiTours1";
+const tSeen=()=>{try{return JSON.parse(localStorage.getItem(TKEY)||"{}")}catch(e){return {}}};
+const tMark=k=>{try{const o=tSeen();o[k]=1;localStorage.setItem(TKEY,JSON.stringify(o))}catch(e){}};
+const tourKey=p=>p==="plan"?($("planTicket").hidden?"planStart":"plan"):p;
+const visEl=sel=>{const el=document.querySelector(sel);if(!el)return null;const r=el.getBoundingClientRect();return r.width>0&&r.height>0?el:null};
+let TS=null;
+function tourStart(key,force){
+  const steps=(TOURS[key]||[]).filter(s=>visEl(s[0]));if(!steps.length)return;
+  if(!force&&tSeen()[key])return;
+  const onb=document.getElementById("onb"),intro=document.getElementById("intro");
+  if((onb&&!onb.hidden)||(intro&&document.body.contains(intro))){setTimeout(()=>tourStart(key,force),700);return}
+  if(TS)tourEnd(false);
+  const ov=document.createElement("div");ov.className="tourov";
+  const hl=document.createElement("div");hl.className="tourhl";
+  const bub=document.createElement("div");bub.className="tourbub";bub.setAttribute("role","dialog");bub.setAttribute("aria-modal","true");bub.setAttribute("aria-live","polite");
+  document.body.append(ov,hl,bub);
+  TS={key,steps,i:0,ov,hl,bub,last:document.activeElement};
+  ov.onclick=()=>tourGo(1);
+  bub.onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.classList.contains("tskip"))tourEnd(true);else if(b.classList.contains("tprev"))tourGo(-1);else tourGo(1)};
+  addEventListener("resize",tourPlace);addEventListener("scroll",tourPlace,true);
+  tourShow();
+}
+function tourShow(){
+  const {steps,i,bub}=TS,[sel,t,d]=steps[i],el=visEl(sel);
+  if(!el){tourGo(1);return}
+  el.scrollIntoView({block:"center",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+  bub.innerHTML=`<span class="tst">${i+1} / ${steps.length}</span><h3>${t}</h3><p>${d}</p><div class="tbtns"><button type="button" class="tskip">건너뛰기</button>${i?`<button type="button" class="tprev">이전</button>`:""}<button type="button" class="tnext">${i===steps.length-1?"알겠어요":"다음"}</button></div>`;
+  setTimeout(()=>{tourPlace();bub.querySelector(".tnext").focus({preventScroll:true})},380);tourPlace();
+}
+function tourPlace(){
+  if(!TS)return;const el=visEl(TS.steps[TS.i][0]);if(!el)return;
+  const r=el.getBoundingClientRect(),pad=6,vh=innerHeight,{hl,bub}=TS;
+  const top=Math.max(4,r.top-pad),h=Math.min(r.height+pad*2,vh-8);
+  Object.assign(hl.style,{left:Math.max(4,r.left-pad)+"px",top:top+"px",width:Math.min(r.width+pad*2,innerWidth-8)+"px",height:h+"px"});
+  const bh=bub.offsetHeight||170,below=top+h+12,above=top-bh-12;
+  bub.style.top=(below+bh<vh-80?below:above>8?above:Math.max(8,vh-bh-90))+"px";
+}
+function tourGo(dx){if(!TS)return;const n=TS.i+dx;if(n<0)return;if(n>=TS.steps.length){tourEnd(true);return}TS.i=n;tourShow()}
+function tourEnd(mark){if(!TS)return;const {ov,hl,bub,key,last}=TS;ov.remove();hl.remove();bub.remove();removeEventListener("resize",tourPlace);removeEventListener("scroll",tourPlace,true);if(mark)tMark(key);TS=null;if(last&&document.contains(last))last.focus({preventScroll:true})}
+document.addEventListener("keydown",e=>{if(!TS)return;if(e.key==="Escape"){e.preventDefault();tourEnd(true)}else if(e.key==="ArrowRight"){e.preventDefault();tourGo(1)}else if(e.key==="ArrowLeft"){e.preventDefault();tourGo(-1)}},true);
+/* 제목 옆 ? 버튼 */
+["rec","live","plan","saved","community","wallet"].forEach(p=>{const bar=document.querySelector(`#pg-${p} .subbar`);if(!bar)return;const b=document.createElement("button");b.className="helpq";b.type="button";b.textContent="?";b.setAttribute("aria-label","이 화면 도움말 보기");b.onclick=()=>tourStart(tourKey(p),true);bar.appendChild(b)});
+/* 화면에 처음 들어가면 자동으로 */
+(function(){const g=window.go;if(typeof g!=="function")return;window.go=function(p,o){const r=g.apply(this,arguments);setTimeout(()=>{if(st.page===p&&!TS)tourStart(tourKey(p),false)},500);return r}})();
+window.resetTours=()=>{try{localStorage.removeItem(TKEY)}catch(e){}};
 </script>
 </body>
 </html>
