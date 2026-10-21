@@ -687,6 +687,33 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 .tourbub .tbtns .tnext{background:var(--accent);color:var(--accent-ink)}
 .tourbub button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.tourhl{transition:none}}
+
+/* 홈 배치: 여행 준비가 먼저, 여행 중 모드는 필요할 때 크게 */
+#tripNow:empty{display:none}
+#tripNow{margin:4px 0 16px}
+.tripcard{border-radius:18px;padding:16px 18px;box-sizing:border-box;width:100%}
+.tripcard.now{background:var(--hero);color:var(--hero-fg);display:flex;flex-direction:column;gap:6px}
+.tripcard .tk{font-size:13.5px;font-weight:700;opacity:.8}
+.tripcard b{font-size:20px;letter-spacing:-.02em}
+.tripcard .td{font-size:14px;opacity:.85;line-height:1.5}
+.tripcard .tbx{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.tripcard button{all:unset;cursor:pointer;padding:10px 15px;border-radius:999px;font-weight:800;font-size:14.5px}
+.tripcard .tgo{background:var(--accent);color:var(--accent-ink)}
+.tripcard.now .tsub{background:rgba(255,255,255,.18);color:inherit}
+.tripcard.soon{background:var(--paper);display:flex;align-items:center;gap:14px;border:1.5px solid var(--line)}
+.tripcard.soon .tdd{flex:none;font-family:var(--body);font-weight:800;font-size:22px;color:var(--accent);font-variant-numeric:tabular-nums}
+.tripcard.soon .tbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.tripcard.soon b{font-size:17px}.tripcard.soon .tk,.tripcard.soon .td{color:var(--muted);opacity:1;font-size:13px}
+.tripcard.soon .tsub{flex:none;background:var(--chip);color:var(--ink)}
+.tripcard button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.liverow{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;margin:12px 0 4px;padding:12px 14px;border-radius:14px;background:var(--paper);border:1.5px dashed var(--line);box-sizing:border-box;width:100%}
+.liverow[hidden]{display:none}
+.liverow .lri{flex:none;width:38px;height:38px;border-radius:11px;background:var(--tint);color:var(--accent);display:grid;place-items:center}
+.liverow .lri svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.liverow .lrt{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.liverow .lrt b{font-size:15px}.liverow .lrt small{font-size:12.5px;color:var(--muted);line-height:1.4}
+.liverow .lrg{font-size:22px;color:var(--muted)}
+.liverow:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style>
 
 <div class="onb" id="onb" role="dialog" aria-modal="true" aria-label="앱 사용법" hidden>
@@ -746,8 +773,8 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
   <!-- 홈 -->
   <section class="page" id="pg-home" aria-labelledby="hello">
     <div class="appbar"><span class="brand">MBTI <b>즉흥 여행</b></span><div class="abr"><button class="thbtn" type="button" aria-label="테마 바꾸기" onclick="document.getElementById('themeFab').click()"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1 0 1.5-.7 1.5-1.5 0-.5-.2-.8-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.8.7-1.5 1.5-1.5H16a5 5 0 0 0 5-5c0-4.1-4-7.6-9-7.6z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="15" cy="8" r="1"/></svg></button><button class="cchip" data-go="wallet" aria-label="내 크레딧"><svg class="coin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="currentColor"/><circle cx="12" cy="12" r="6.5" fill="none" stroke="var(--gold-bg)" stroke-width="1.6"/></svg><span id="cChip">0</span></button><button class="mechip" id="meChip" aria-label="내 성향 검사로 가기"></button></div></div>
-    <h1 class="hello" id="hello">계획대로 안 돼도<br><span>괜찮은 여행</span></h1>
-    <button class="livehero" data-go="live" id="liveHero"><span class="lk">지금 여행 중이세요?</span><b>여행 중 모드 열기 ›</b><span class="d">비가 오거나, 지치거나, 술이 당기면 AI가 지금 위치와 시간에 맞춰 남은 일정을 바로 다시 짜 드려요.</span><span class="tags"><i>일몰 계산</i><i>비 오면 실내로</i><i>웨이팅 대안</i><i>오늘 힘들어</i></span></button>
+    <h1 class="hello" id="hello" data-greet="1">계획대로 안 돼도<br><span>괜찮은 여행</span></h1>
+    <div id="tripNow"></div>
     <h2 style="margin-top:4px">여행 준비하기</h2>
     <div class="search">
       <button class="field" id="fCity"><span class="fi"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span><span class="ft"><span class="fl">여행지</span><span class="fv" id="vCity"></span></span><span class="chev">›</span></button>
@@ -757,6 +784,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
       <div class="lenseg" id="lens" role="group" aria-label="기간"></div>
       <button class="go" id="goHome">코스 추천받기</button>
     </div>
+    <button class="liverow" data-go="live" id="liveRow"><span class="lri" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><path d="M12 6.5v3.2l2 1.3"/></svg></span><span class="lrt"><b>여행 중이라면 · 여행 중 모드</b><small>비, 웨이팅, 피곤할 때 AI가 남은 일정을 다시 짜 줘요</small></span><span class="lrg" aria-hidden="true">›</span></button>
 
     <div class="attend" id="attend"></div>
 
@@ -1680,6 +1708,24 @@ function cityRow(c,attr){
   const C=CITY[c],K=COUNTRY[C.c];
   return `<li><button class="crow" ${attr} data-city="${c}" ${c===st.city?'aria-current="true"':""}><span class="sw" style="background:${grad(c)}">${K[0]}</span><span><span class="cn">${c} <span style="font-weight:400;color:var(--muted)">${esc(C.nat!==c?C.nat:"")}</span></span><span class="cm">${esc(C.tz)}${C.go?" · "+esc(C.go):""}</span></span><span class="chev">›</span></button></li>`;
 }
+/* 홈 맨 위: 오늘 여행 중이면 여행 중 모드를 크게, 곧 떠나면 D-day 카드 */
+function tripStatus(){
+  const list=[];
+  saved.forEach(r=>{try{const P=JSON.parse(r.json);if(P&&P.date&&P.city&&CITY[P.city])list.push({src:"saved:"+r.id,id:r.id,name:r.name,P})}catch(e){}});
+  if(st.draft&&st.draft.date&&CITY[st.draft.city])list.push({src:"draft",name:st.draft.name||"짜던 코스",P:st.draft});
+  let on=null,up=null;
+  for(const x of list){const n=x.P.days.length||1,today=cityParts(x.P.city).iso,diff=Math.round((parseD(today)-parseD(x.P.date))/864e5);
+    if(diff>=0&&diff<n){if(!on)on=Object.assign({day:diff+1,n},x)}
+    else if(diff<0&&diff>=-30){if(!up||-diff<up.d)up=Object.assign({d:-diff,n},x)}}
+  return{on,up};
+}
+function renderTripNow(){
+  const {on,up}=tripStatus(),el=$("tripNow");if(!el)return;
+  $("liveRow").hidden=!!on;
+  if(on){const P=on.P;el.innerHTML=`<div class="tripcard now"><span class="tk">지금 여행 중 · ${esc(P.city)} ${on.n>1?`${on.day}일차 / ${on.n}일`:"당일"}</span><b>${esc(on.name)}</b><span class="td">일정이 틀어져도 괜찮아요. 지금 상황에 맞게 남은 일정을 바로 다시 짜 드려요.</span><span class="tbx"><button class="tgo" data-trip="live" data-src="${esc(on.src)}">여행 중 모드 열기 ›</button>${on.id?`<button class="tsub" data-trip="open" data-id="${esc(on.id)}">오늘 코스 보기</button>`:""}</span></div>`;return}
+  if(up){const P=up.P,n=up.n;el.innerHTML=`<div class="tripcard soon"><span class="tdd">D-${up.d}</span><span class="tbody"><span class="tk">곧 떠나는 여행 · ${esc(P.city)}</span><b>${esc(up.name)}</b><span class="td">${dLabel(P.date)}${n>1?" – "+dLabel(P.date,n-1):""} · 여행 당일에는 여기서 여행 중 모드가 열려요</span></span>${up.id?`<button class="tsub" data-trip="open" data-id="${esc(up.id)}">코스 보기</button>`:""}</div>`;return}
+  el.innerHTML="";
+}
 function renderHome(){
   const pr=profile();renderAttend();
   $("meChip").textContent=pr.code;
@@ -1694,13 +1740,16 @@ function renderHome(){
   $("lens").innerHTML=`<button id="len-half" data-l="반나절" aria-pressed="${st.len==="반나절"}">반나절</button><button id="len-day" data-l="하루" aria-pressed="${st.len==="하루"}">당일</button><button id="len-stay" data-l="${lenOf(nn||1)}" aria-pressed="${nn>0}">숙박</button>`
     +(nn?`<div class="nights" role="group" aria-label="숙박 일수"><button id="nMinus" data-n="${nn-1}" ${nn<=1?"disabled":""} aria-label="하루 줄이기">−</button><b>${st.len}</b><button id="nPlus" data-n="${nn+1}" ${nn>=MAXN?"disabled":""} aria-label="하루 늘리기">+</button></div>`:"");
   $("picks").innerHTML=PICKS.map(c=>`<button class="mini" data-pick="${c}" style="background:${grad(c)}"><span class="cc">${COUNTRY[CITY[c].c][0]}</span><span class="nt">${esc(CITY[c].nat)}</span><span class="kn">${c}</span></button>`).join("");
-  renderRecent();
+  renderRecent();renderTripNow();
 }
 function renderRecent(){
   const box=$("recentBox");
   box.innerHTML=saved.length?`<ul class="recent">${saved.slice(0,3).map(r=>`<li><button data-open="${esc(r.id)}"><span class="pn">${esc(r.name)}</span><span class="pm">${esc(r.city)} · ${esc(r.len)}</span></button></li>`).join("")}</ul>`
     :`<p class="hint">아직 저장한 플랜이 없어요. 코스 짜기에서 코스를 만들고 저장하면 여기에 보여요.</p>`;
 }
+$("tripNow").onclick=e=>{const b=e.target.closest("button[data-trip]");if(!b)return;
+  if(b.dataset.trip==="live"){loadLiveFrom(b.dataset.src);go("live")}
+  if(b.dataset.trip==="open")openSaved(b.dataset.id)};
 $("recentBox").onclick=e=>{const b=e.target.closest("button[data-open]");if(b)openSaved(b.dataset.open)};
 $("lens").onclick=e=>{const b=e.target.closest("button");if(!b||b.disabled)return;st.len=b.dataset.n!==undefined?lenOf(Math.max(1,Math.min(MAXN,+b.dataset.n))):b.dataset.l;savePrefs();renderHome()};
 $("date").addEventListener("change",e=>{if(e.target.value){st.date=e.target.value;savePrefs();renderHome()}});
