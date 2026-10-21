@@ -272,6 +272,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,la
 .tpair{display:flex;align-items:center;gap:8px}
 .tpair input{font:inherit;font-weight:700;font-size:16px;border:0;background:transparent;color:var(--ink);padding:0;min-width:0;width:auto;font-variant-numeric:tabular-nums}
 .tpair span{color:var(--muted)}
+.fhelp{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.4;white-space:normal}
 .livehero{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:6px;background:var(--hero);color:var(--hero-fg);border-radius:18px;padding:18px;box-sizing:border-box;width:100%}
 .livehero .lk{font-size:13.5px;font-weight:700;opacity:.75}
 .livehero b{font-size:20px;letter-spacing:-.02em}
@@ -446,8 +447,93 @@ details.lsetbox[open] summary::after{content:"−"}
 @media (prefers-reduced-motion:no-preference){.ticket.fresh{animation:print .45s ease-out}.page{animation:in .2s ease-out}
 @keyframes print{from{transform:translateY(-8px);opacity:.4}to{transform:none;opacity:1}}
 @keyframes in{from{transform:translateX(8px);opacity:.6}to{transform:none;opacity:1}}}
+
+/* 테마: 사용자가 테마 고르기 창에서 선택 */
+html:root[data-skin="peach"]{--bg:#FFF3EE;--paper:#FFFFFF;--ink:#3A2A26;--muted:#7E665E;--line:#F6DCD2;--accent:#D9674E;--accent-ink:#FFFFFF;--tint:#FFE3DA;--stamp:#C93F74;--chip:#FBE7E0;--good:#2E8A5B;--gold:#9A5B00;--gold-bg:#FFE9C4;--hero:#5B3A33;--hero-fg:#FFF4EF;color-scheme:light}
+html:root[data-skin="mint"]{--bg:#EEFAF5;--paper:#FFFFFF;--ink:#1F3B33;--muted:#5B7A70;--line:#CDEBDF;--accent:#23906F;--accent-ink:#FFFFFF;--tint:#D5F3E7;--stamp:#E2648C;--chip:#DFF2EA;--good:#1F8A5B;--gold:#946000;--gold-bg:#FBEBC4;--hero:#24493F;--hero-fg:#F0FFF9;color-scheme:light}
+html:root[data-skin="sky"]{--bg:#EFF6FF;--paper:#FFFFFF;--ink:#1E2B42;--muted:#5D6B85;--line:#D3E3F8;--accent:#3F7BDB;--accent-ink:#FFFFFF;--tint:#DCEAFF;--stamp:#E58A3E;--chip:#E3EEFB;--good:#1F8A5B;--gold:#946000;--gold-bg:#FBEBC4;--hero:#263A5C;--hero-fg:#F2F7FF;color-scheme:light}
+html:root[data-skin="sakura"]{--bg:#FFF2F6;--paper:#FFFFFF;--ink:#3B2230;--muted:#7F6070;--line:#F7D6E1;--accent:#CC5481;--accent-ink:#FFFFFF;--tint:#FFE0EA;--stamp:#7E5FD6;--chip:#FBE6EE;--good:#2E8A5B;--gold:#9A5B00;--gold-bg:#FFE9C4;--hero:#4F2A3A;--hero-fg:#FFF4F8;color-scheme:light}
+html:root[data-skin="lavender"]{--bg:#F4F2FB;--paper:#FFFFFF;--ink:#2A2440;--muted:#6A6383;--line:#E0DBEF;--accent:#6D52F5;--accent-ink:#FFFFFF;--tint:#EAE5FF;--stamp:#FF6F59;--chip:#ECE8F6;--good:#1F8A5B;--gold:#9A5B00;--gold-bg:#FFE7C7;--hero:#2A2440;--hero-fg:#F4F1FF;color-scheme:light}
+html:root[data-skin="butter"]{--bg:#FFFAE8;--paper:#FFFFFF;--ink:#3A3016;--muted:#7A6D4A;--line:#F2E7BF;--accent:#A36F00;--accent-ink:#FFFFFF;--tint:#FFF0C2;--stamp:#D9567A;--chip:#FBF2D3;--good:#2E7A1F;--gold:#8A5D00;--gold-bg:#FFEDB8;--hero:#4A3B12;--hero-fg:#FFFBEA;color-scheme:light}
+html:root[data-skin="sea"]{--bg:#EAF5F4;--paper:#FFFFFF;--ink:#0D2B30;--muted:#4A676B;--line:#C9E0DF;--accent:#0E8A8C;--accent-ink:#FFFFFF;--tint:#D2EEEC;--stamp:#E4572E;--chip:#DCEDEC;--good:#1F8A5B;--gold:#9A6200;--gold-bg:#FBE8C4;--hero:#0D3A42;--hero-fg:#E9FAF9;color-scheme:light}
+html:root[data-skin="citrus"]{--bg:#FBFAEF;--paper:#FFFFFF;--ink:#1E2410;--muted:#5D6447;--line:#E4E6CC;--accent:#3E7D14;--accent-ink:#FFFFFF;--tint:#E6F2D2;--stamp:#F08A00;--chip:#EEF0DA;--good:#2C7A1F;--gold:#946000;--gold-bg:#FFEDB8;--hero:#23300F;--hero-fg:#F6FBE8;color-scheme:light}
+html:root[data-skin="night"]{--bg:#0D0E19;--paper:#171A2C;--ink:#EEEBFF;--muted:#A6A9CB;--line:#2C3050;--accent:#FF5C8A;--accent-ink:#1B0710;--tint:#2C1F3D;--stamp:#6FF2D0;--chip:#23263F;--good:#59E3A7;--gold:#FFD166;--gold-bg:#3A3220;--hero:#262A52;--hero-fg:#F4F2FF;color-scheme:dark}
+html:root[data-skin="pastelnight"]{--bg:#1A1824;--paper:#242131;--ink:#F1ECFA;--muted:#B5ADC8;--line:#363147;--accent:#C9B6FF;--accent-ink:#22173F;--tint:#2F2843;--stamp:#FFB3C7;--chip:#2C2839;--good:#8FE3BF;--gold:#FFD9A0;--gold-bg:#3B3226;--hero:#2F2A44;--hero-fg:#F5F0FF;color-scheme:dark}
+html:root[data-skin="mono"]{--bg:#F3F3F1;--paper:#FFFFFF;--ink:#111111;--muted:#555555;--line:#DADAD6;--accent:#111111;--accent-ink:#FFFFFF;--tint:#E7E7E3;--stamp:#E5483B;--chip:#E8E8E4;--good:#1F7A4F;--gold:#8A5D00;--gold-bg:#F1E6CC;--hero:#111111;--hero-fg:#FFFFFF;color-scheme:light}
+html:root[data-skin="peach"] .scard,html:root[data-skin="peach"] .search,html:root[data-skin="peach"] .menu button,html:root[data-skin="peach"] .pcard,html:root[data-skin="mint"] .scard,html:root[data-skin="mint"] .search,html:root[data-skin="mint"] .menu button,html:root[data-skin="mint"] .pcard,html:root[data-skin="sky"] .scard,html:root[data-skin="sky"] .search,html:root[data-skin="sky"] .menu button,html:root[data-skin="sky"] .pcard,html:root[data-skin="sakura"] .scard,html:root[data-skin="sakura"] .search,html:root[data-skin="sakura"] .menu button,html:root[data-skin="sakura"] .pcard,html:root[data-skin="lavender"] .scard,html:root[data-skin="lavender"] .search,html:root[data-skin="lavender"] .menu button,html:root[data-skin="lavender"] .pcard,html:root[data-skin="butter"] .scard,html:root[data-skin="butter"] .search,html:root[data-skin="butter"] .menu button,html:root[data-skin="butter"] .pcard,html:root[data-skin="pastelnight"] .scard,html:root[data-skin="pastelnight"] .search,html:root[data-skin="pastelnight"] .menu button,html:root[data-skin="pastelnight"] .pcard{border-radius:22px}
+html:root[data-skin="peach"] .go,html:root[data-skin="peach"] .lcard .rmain,html:root[data-skin="mint"] .go,html:root[data-skin="mint"] .lcard .rmain,html:root[data-skin="sky"] .go,html:root[data-skin="sky"] .lcard .rmain,html:root[data-skin="sakura"] .go,html:root[data-skin="sakura"] .lcard .rmain,html:root[data-skin="lavender"] .go,html:root[data-skin="lavender"] .lcard .rmain,html:root[data-skin="butter"] .go,html:root[data-skin="butter"] .lcard .rmain,html:root[data-skin="pastelnight"] .go,html:root[data-skin="pastelnight"] .lcard .rmain{border-radius:999px}
+html:root[data-skin="peach"] .post,html:root[data-skin="mint"] .post,html:root[data-skin="sky"] .post,html:root[data-skin="sakura"] .post,html:root[data-skin="lavender"] .post,html:root[data-skin="butter"] .post,html:root[data-skin="pastelnight"] .post{filter:saturate(.55) brightness(1.12)}
+html:root[data-skin="night"] .catchip,html:root[data-skin="pastelnight"] .catchip{background:var(--chip)!important;color:var(--ink)!important}
+html:root[data-skin="mono"] .scard,html:root[data-skin="mono"] .search,html:root[data-skin="mono"] .menu button,html:root[data-skin="mono"] .ticket{border-radius:6px}
+html:root[data-skin="mono"] .post{filter:grayscale(1) contrast(1.1)}
+html:root[data-skin="citrus"] .go{border-radius:999px}
+html:root[data-skin="peach"]{--hero:#FFD2C4;--hero-fg:#4A2418}
+html:root[data-skin="mint"]{--hero:#BFEBD9;--hero-fg:#173A2F}
+html:root[data-skin="sky"]{--hero:#CADDFB;--hero-fg:#18294A}
+html:root[data-skin="sakura"]{--hero:#FFCCDC;--hero-fg:#4A1F33}
+html:root[data-skin="lavender"]{--hero:#DAD1FF;--hero-fg:#2A1F55}
+html:root[data-skin="butter"]{--hero:#FFE7A3;--hero-fg:#3F300A}
+html:root[data-skin="peach"] .livehero .tags i,html:root[data-skin="peach"] .lchip,html:root[data-skin="mint"] .livehero .tags i,html:root[data-skin="mint"] .lchip,html:root[data-skin="sky"] .livehero .tags i,html:root[data-skin="sky"] .lchip,html:root[data-skin="sakura"] .livehero .tags i,html:root[data-skin="sakura"] .lchip,html:root[data-skin="lavender"] .livehero .tags i,html:root[data-skin="lavender"] .lchip,html:root[data-skin="butter"] .livehero .tags i,html:root[data-skin="butter"] .lchip{background:rgba(255,255,255,.6)}
+html:root[data-skin="peach"] .livehero .lk,html:root[data-skin="peach"] .livehero span.d,html:root[data-skin="mint"] .livehero .lk,html:root[data-skin="mint"] .livehero span.d,html:root[data-skin="sky"] .livehero .lk,html:root[data-skin="sky"] .livehero span.d,html:root[data-skin="sakura"] .livehero .lk,html:root[data-skin="sakura"] .livehero span.d,html:root[data-skin="lavender"] .livehero .lk,html:root[data-skin="lavender"] .livehero span.d,html:root[data-skin="butter"] .livehero .lk,html:root[data-skin="butter"] .livehero span.d{opacity:.9}
+.themefab{all:unset;cursor:pointer;position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:40;display:flex;align-items:center;gap:6px;padding:10px 14px;border-radius:999px;background:var(--ink);color:var(--paper);font-weight:800;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.themefab svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tsheet .tg{display:flex;flex-direction:column;gap:8px}
+.tsheet h3{margin:6px 0 0;font-size:14px;color:var(--muted)}
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tcard{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:14px;border:2px solid var(--line);background:var(--paper);text-align:center;font-weight:700;font-size:13.5px;color:var(--ink)}
+.tcard[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.tprev{height:58px;border-radius:10px;padding:7px;display:flex;flex-direction:column;gap:5px;box-sizing:border-box;border:1px solid rgba(0,0,0,.06)}
+.tprev i{display:block;border-radius:5px}
+.tprev .a{height:10px;width:70%}.tprev .b{flex:1;border-radius:7px;display:flex;align-items:flex-end;padding:4px}.tprev .c{height:8px;width:45%;border-radius:999px}
+.toast{bottom:calc(130px + env(safe-area-inset-bottom,0px))}
+
+/* 인트로 화면 */
+.intro{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:var(--bg);color:var(--ink);
+  padding:env(safe-area-inset-top,0px) max(16px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(16px,env(safe-area-inset-left,0px));transition:opacity .45s ease,visibility .45s;cursor:pointer}
+.intro.out{opacity:0;visibility:hidden}
+.intro .itk{position:relative;width:min(240px,64vw);aspect-ratio:1.45;border-radius:22px;background:var(--paper);box-shadow:0 18px 40px rgba(0,0,0,.14);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.intro .itk::before,.intro .itk::after{content:"";position:absolute;top:62%;width:30px;height:30px;border-radius:50%;background:var(--bg);transform:translateY(-50%)}
+.intro .itk::before{left:-15px}.intro .itk::after{right:-15px}
+.intro .perfl{position:absolute;left:24px;right:24px;top:62%;border-top:3px dashed var(--line)}
+.intro .iword{font-weight:800;font-size:clamp(34px,11vw,46px);letter-spacing:-.03em;margin-top:-18%}
+.intro .icode{position:absolute;bottom:12%;font-family:var(--mono);font-weight:600;font-size:15px;color:var(--stamp);border:2px solid var(--stamp);border-radius:7px;padding:0 8px;transform:rotate(-6deg)}
+.intro .iname{font-weight:800;font-size:22px;letter-spacing:-.02em;text-align:center}
+.intro .iname b{color:var(--accent);font-weight:800}
+.intro .itag{font-size:15px;color:var(--muted);margin-top:-14px;text-align:center}
+.intro .idots{display:flex;gap:7px}
+.intro .idots i{width:7px;height:7px;border-radius:50%;background:var(--accent);opacity:.3}
+.intro .iskip{position:absolute;bottom:calc(24px + env(safe-area-inset-bottom,0px));font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){
+  .intro .itk{animation:itkIn .7s cubic-bezier(.2,.9,.3,1.2) both}
+  .intro .icode{animation:stamp .45s .55s cubic-bezier(.3,1.6,.5,1) both}
+  .intro .iname,.intro .itag{animation:fadeUp .5s .35s ease both}
+  .intro .idots i{animation:dot 1s infinite ease-in-out}
+  .intro .idots i:nth-child(2){animation-delay:.15s}.intro .idots i:nth-child(3){animation-delay:.3s}
+  @keyframes itkIn{from{transform:translateY(30px) rotate(-4deg) scale(.9);opacity:0}to{transform:none;opacity:1}}
+  @keyframes stamp{from{transform:rotate(-6deg) scale(2.2);opacity:0}to{transform:rotate(-6deg) scale(1);opacity:1}}
+  @keyframes fadeUp{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+  @keyframes dot{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-4px)}}
+}
 </style>
 
+<div class="intro" id="intro" role="presentation" aria-hidden="true">
+  <div class="itk"><span class="perfl"></span><span class="iword">즉흥</span><span class="icode" id="introCode">MBTI</span></div>
+  <div class="iname">MBTI <b>즉흥 여행</b></div>
+  <div class="itag">계획대로 안 돼도 괜찮은 여행</div>
+  <div class="idots"><i></i><i></i><i></i></div>
+  <div class="iskip">화면을 누르면 바로 시작해요</div>
+</div>
+<script>
+(function(){
+  var el=document.getElementById("intro");if(!el)return;
+  try{var p=JSON.parse(localStorage.getItem("mbtiTrip3")||"null");if(p&&p.mode!=="survey"&&p.mbti&&p.mbti.length===4)document.getElementById("introCode").textContent=p.mbti.join("")}catch(e){}
+  var seen=false;try{seen=sessionStorage.getItem("introSeen")==="1"}catch(e){}
+  function hide(){if(el.classList.contains("out"))return;el.classList.add("out");try{sessionStorage.setItem("introSeen","1")}catch(e){}setTimeout(function(){el.remove()},500)}
+  if(seen){el.remove();return}
+  el.addEventListener("click",hide);
+  setTimeout(hide,matchMedia("(prefers-reduced-motion: reduce)").matches?900:1700);
+})();
+</script>
 <div class="wrap">
 
   <!-- 홈 -->
@@ -459,7 +545,7 @@ details.lsetbox[open] summary::after{content:"−"}
     <div class="search">
       <button class="field" id="fCity"><span class="fi"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span><span class="ft"><span class="fl">여행지</span><span class="fv" id="vCity"></span></span><span class="chev">›</span></button>
       <label class="field" for="date"><span class="fi"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span><span class="ft"><span class="fl">출발일</span><input type="date" id="date"></span><span class="chev" id="vDow" style="font-size:13px;font-weight:700"></span></label>
-      <div class="field" style="cursor:default"><span class="fi"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span><span class="ft"><span class="fl">출발 · 복귀 시간</span><span class="tpair"><input type="time" id="dep" aria-label="첫날 출발 시간"><span>→</span><input type="time" id="ret" aria-label="마지막 날 복귀 시간"></span></span><span></span></div>
+      <div class="field" style="cursor:default"><span class="fi"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span><span class="ft"><span class="fl">현지 일정 시간</span><span class="tpair"><input type="time" id="dep" aria-label="첫날 첫 일정 시작 시간"><span>→</span><input type="time" id="ret" aria-label="마지막 날 일정 마무리 시간"></span><span class="fhelp">교통편 시간 말고, 여행지에서 첫 일정을 시작하고 마지막 날 일정을 마무리할 시간</span></span><span></span></div>
       <button class="field" id="fMe"><span class="fi"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span><span class="ft"><span class="fl">내 여행 성향</span><span class="fv" id="vMe"></span></span><span class="chev">›</span></button>
       <div class="lenseg" id="lens" role="group" aria-label="기간"></div>
       <button class="go" id="goHome">코스 추천받기</button>
@@ -569,12 +655,12 @@ details.lsetbox[open] summary::after{content:"−"}
         <li>Q5 목적: 구경이면 명소 한 곳 추가, 먹방이면 간식·카페 한 곳 추가, 힐링이면 한 시간 늦게 출발하고 명소 한 곳을 빼요.</li>
         <li>Q6 체력: 많이 걸어도 되면 명소 한 곳 추가, 조금만 걷고 싶으면 명소 한 곳을 빼요.</li>
       </ul>
-      <h3>이동 시간과 출발·복귀 시간</h3>
+      <h3>이동 시간과 현지 일정 시간</h3>
       <ul>
         <li>장소 사이 직선거리에 1.3을 곱해 실제 이동 거리를 어림해요. 1.2km 미만이면 도보(시속 4.5km)로 계산해요.</li>
         <li>그보다 멀면 도시별 주요 교통수단(서울 지하철·버스, 도쿄 전철, 다낭 택시·그랩 등)의 평균 속도와 대기·환승 시간을 더해요. 25km 이상이면 근교 이동으로 봐요.</li>
         <li>머무는 시간은 명소 1시간 30분, 식사 1시간, 카페 45분, 야경 1시간으로 잡고, 다음 장소에 제때 못 가면 '빠듯해요'로 알려 줘요.</li>
-        <li>첫날은 출발 시간 전, 마지막 날은 복귀 시간 뒤로 넘어가는 일정은 빼고 추천해요.</li>
+        <li>현지 일정 시간은 KTX·비행기 시간이 아니라, 여행지에 도착해 첫 일정을 시작하는 시간과 마지막 날 일정을 마무리하는 시간이에요. 첫날은 첫 일정 시간 전, 마지막 날은 마무리 시간 뒤로 넘어가는 일정은 빼고 추천해요.</li>
         <li>앱 안의 시간은 예상치예요. 실제 노선, 배차, 교통 상황은 길찾기 버튼으로 확인하세요. 국내는 카카오맵(구글 지도가 한국에서 자동차·도보 길찾기를 지원하지 않아서), 해외는 구글 지도로 열려요. '다른 수단'에서 대중교통·자동차·택시·도보 경로를 바로 바꿔 볼 수 있어요.</li>
       </ul>
     </div>
@@ -647,6 +733,9 @@ details.lsetbox[open] summary::after{content:"−"}
   </section>
 </div>
 
+<button class="themefab" id="themeFab" aria-label="테마 바꾸기"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1 0 1.5-.7 1.5-1.5 0-.5-.2-.8-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.8.7-1.5 1.5-1.5H16a5 5 0 0 0 5-5c0-4.1-4-7.6-9-7.6z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="15" cy="7.5" r="1"/></svg>테마</button>
+<div class="scrim" id="tScrim" hidden></div>
+<div class="sheet tsheet" id="tSheet" role="dialog" aria-modal="true" aria-labelledby="tTitle" hidden><div class="in"><div class="sh"><h2 id="tTitle">테마 고르기</h2><button id="tClose">닫기</button></div><p class="small">누르면 바로 바뀌어요. 고른 테마는 이 기기에 기억돼요.</p><div class="scrollbox" style="display:flex;flex-direction:column;gap:12px"><div class="tg"><h3>파스텔</h3><div class="tgrid"><button class="tcard" data-skin="peach" aria-pressed="false"><span class="tprev" style="background:#FFF3EE"><i class="a" style="background:#3A2A26;opacity:.85"></i><i class="b" style="background:#FFFFFF"><i class="c" style="background:#D9674E"></i></i></span>피치</button><button class="tcard" data-skin="mint" aria-pressed="false"><span class="tprev" style="background:#EEFAF5"><i class="a" style="background:#1F3B33;opacity:.85"></i><i class="b" style="background:#FFFFFF"><i class="c" style="background:#23906F"></i></i></span>민트</button><button class="tcard" data-skin="sky" aria-pressed="false"><span class="tprev" style="background:#EFF6FF"><i class="a" style="background:#1E2B42;opacity:.85"></i><i class="b" style="background:#FFFFFF"><i class="c" style="background:#3F7BDB"></i></i></span>스카이</button><button class="tcard" data-skin="sakura" aria-pressed="false"><span class="tprev" style="background:#FFF2F6"><i class="a" style="background:#3B2230;opacity:.85"></i><i class="b" style="background:#FFFFFF"><i class="c" style="background:#CC5481"></i></i></span>벚꽃</button><button class="tcard" data-skin="lavender" aria-pressed="false"><span class="tprev" style="background:#F4F2FB"><i class="a" style="background:#2A2440;opacity:.85"></i><i class="b" style="background:#FFFFFF"><i class="c" style="background:#6D52F5"></i></i></span>라벤더</button><button class="tcard" data-skin="butter" aria-pressed="false"><span class="tprev" style="background:#FFFAE8"><i class="a" style="background:#3A3016;opacity:.85"></i><i class="b" style="background:#FFFFFF"><i class="c" style="background:#A36F00"></i></i></span>버터</button></div></div><div class="tg"><h3>선명한</h3><div class="tgrid"><button class="tcard" data-skin="sea" aria-pressed="false"><span class="tprev" style="background:#EAF5F4"><i class="a" style="background:#0D2B30;opacity:.85"></i><i class="b" style="background:#FFFFFF"><i class="c" style="background:#0E8A8C"></i></i></span>제주 바다</button><button class="tcard" data-skin="citrus" aria-pressed="false"><span class="tprev" style="background:#FBFAEF"><i class="a" style="background:#1E2410;opacity:.85"></i><i class="b" style="background:#FFFFFF"><i class="c" style="background:#3E7D14"></i></i></span>시트러스</button><button class="tcard" data-skin="base" aria-pressed="false"><span class="tprev" style="background:#E9EEEC"><i class="a" style="background:#16201C;opacity:.85"></i><i class="b" style="background:#FBFCFB"><i class="c" style="background:#2C55E0"></i></i></span>지금 테마</button></div></div><div class="tg"><h3>다크·모노</h3><div class="tgrid"><button class="tcard" data-skin="night" aria-pressed="false"><span class="tprev" style="background:#0D0E19"><i class="a" style="background:#EEEBFF;opacity:.85"></i><i class="b" style="background:#171A2C"><i class="c" style="background:#FF5C8A"></i></i></span>도쿄 나이트</button><button class="tcard" data-skin="pastelnight" aria-pressed="false"><span class="tprev" style="background:#1A1824"><i class="a" style="background:#F1ECFA;opacity:.85"></i><i class="b" style="background:#242131"><i class="c" style="background:#C9B6FF"></i></i></span>파스텔 나이트</button><button class="tcard" data-skin="mono" aria-pressed="false"><span class="tprev" style="background:#F3F3F1"><i class="a" style="background:#111111;opacity:.85"></i><i class="b" style="background:#FFFFFF"><i class="c" style="background:#111111"></i></i></span>모노</button></div></div></div></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
 
 <nav class="tabbar" aria-label="하단 메뉴"><div class="in">
@@ -1272,7 +1361,7 @@ function ensureWin(P){
 function autoFit(w,d){
   const P=planOf(w);ensureWin(P);const day=P.days[d],S=P.win[d][0];
   day.forEach((s,i)=>{if(i===0){s.h=r10(S);return}const p=day[i-1];s.h=r10(p.h+stay(p.cat)+((leg(p,s,P.city)||{min:20}).min)/60)});
-  st.dirty=true;renderTicket(w,false);toast("출발 시간과 이동 시간에 맞춰 시간을 다시 계산했어요.");
+  st.dirty=true;renderTicket(w,false);toast("첫 일정 시간과 이동 시간에 맞춰 시간을 다시 계산했어요.");
 }
 const LEGICON={walk:'<svg viewBox="0 0 24 24"><circle cx="13" cy="4.5" r="1.8"/><path d="M10 21l2-6 3 3v3M9 11l3-3 3 2 2 3M12 8l-1 5"/></svg>',
   transit:'<svg viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="14" rx="3"/><path d="M6 11h12M9 21l1.5-4M15 21l-1.5-4"/><circle cx="9" cy="14" r=".6"/><circle cx="15" cy="14" r=".6"/></svg>',
@@ -1289,7 +1378,7 @@ function legHTML(a,b,city,i){
 }
 function endHTML(day,E){
   const last=day[day.length-1],fin=last.h+stay(last.cat),diff=(E-fin)*60;
-  return `<div class="win end"><span>일정 끝 <b>${fmt(fin)}</b></span><span>복귀 <b>${fmt(E)}</b></span><span class="${diff<0?"warn":"okay"}">${diff>=0?"여유 "+fmtDur(diff):"복귀보다 "+fmtDur(-diff)+" 늦어요"}</span></div>`;
+  return `<div class="win end"><span>일정 끝 <b>${fmt(fin)}</b></span><span>마무리 목표 <b>${fmt(E)}</b></span><span class="${diff<0?"warn":"okay"}">${diff>=0?"여유 "+fmtDur(diff):"마무리 목표보다 "+fmtDur(-diff)+" 늦어요"}</span></div>`;
 }
 const recStale=()=>!st.rec||st.rec.dep!==st.dep||st.rec.ret!==st.ret||st.rec.sig!==sig(profile())||st.rec.city!==st.city||st.rec.len!==st.len||st.rec.date!==st.date;
 const planOf=w=>w==="rec"?st.rec:w==="view"?st.view:st.draft;
@@ -1372,7 +1461,7 @@ $("fMe").onclick=()=>go("test");
 ["dep","ret"].forEach(k=>$(k).addEventListener("change",e=>{
   if(!e.target.value)return;const [h1,m1]=e.target.value.split(":").map(Number),v=h1+m1/60;
   const dep=k==="dep"?v:st.dep,ret=k==="ret"?v:st.ret;
-  if(!nightsOf(st.len)&&ret<=dep+1){toast("복귀 시간은 출발 시간보다 1시간 이상 늦어야 해요.");e.target.value=fmt(st[k]);return}
+  if(!nightsOf(st.len)&&ret<=dep+1){toast("일정 마무리 시간은 첫 일정 시간보다 1시간 이상 늦어야 해요.");e.target.value=fmt(st[k]);return}
   st[k]=v;savePrefs();
 }));
 $("meChip").onclick=()=>go("test");
@@ -1466,8 +1555,8 @@ function renderTicket(w,fresh=true){
     if(locked){if(shown>=2)return "";day=day.slice(0,2-shown);shown+=day.length}
     const [S,E]=P.win[d];
     const items=day.map((s,i)=>stopHTML(w,s,d,i,day.length-1)+(i<day.length-1?legHTML(s,day[i+1],P.city,i):"")).join("");
-    const top=ed?`<div class="win"><label>출발 <input type="time" id="ws-${d}" data-win="${d}" data-k="0" value="${fmt(S)}"></label><label>복귀 <input type="time" id="we-${d}" data-win="${d}" data-k="1" value="${fmt(E)}"></label>${day.length>1?`<button data-auto="${d}">시간 자동 맞추기</button>`:""}</div>`
-      :`<div class="win"><span>출발 <b>${fmt(S)}</b></span></div>`;
+    const top=ed?`<div class="win"><label>첫 일정 <input type="time" id="ws-${d}" data-win="${d}" data-k="0" value="${fmt(S)}"></label><label>마무리 <input type="time" id="we-${d}" data-win="${d}" data-k="1" value="${fmt(E)}"></label>${day.length>1?`<button data-auto="${d}">시간 자동 맞추기</button>`:""}</div>`
+      :`<div class="win"><span>첫 일정 <b>${fmt(S)}</b></span></div>`;
     return `<div class="day" id="day-${w}-${d}" ${dv!=="all"&&dv!==d?"hidden":""}>${P.days.length>1?`<h3>${d+1}일차${dl?" · "+dl:""}</h3>`:""}${top}
     ${day.length?`<ol class="stops">${items}</ol>`:`<p class="empty">일정이 비어 있어요. 아래에서 장소를 추가하세요.</p>`}
     ${!locked&&full.length?endHTML(full,E):""}
@@ -1526,9 +1615,9 @@ function copyPlan(P){
   const lines=[`[${P.name||defaultName(P)} · ${P.prof.code}]`+(rl?" "+rl:"")];
   P.days.forEach((day,d)=>{
     if(P.days.length>1)lines.push("",`${d+1}일차${P.date?" "+dLabel(P.date,d):""}`);
-    lines.push(`출발 ${fmt(P.win[d][0])}`);
+    lines.push(`첫 일정 ${fmt(P.win[d][0])}`);
     day.forEach((s,i)=>{lines.push(`${lz?loose(s.h):fmt(s.h)}  ${s.p[0]}`);if(i<day.length-1){const L=leg(s,day[i+1],P.city);if(L)lines.push(`   ↓ ${L.mode} 약 ${fmtDur(L.min)}`)}});
-    lines.push(`복귀 ${fmt(P.win[d][1])}`);
+    lines.push(`일정 마무리 ${fmt(P.win[d][1])}`);
   });
   navigator.clipboard.writeText(lines.join("\n")).then(()=>toast("코스를 복사했어요. 메신저에 붙여 넣으세요."),()=>toast("복사가 막혀 있어요. 코스를 길게 눌러 직접 복사해 주세요."));
 }
@@ -2210,6 +2299,21 @@ st.rec=build();renderTicket("rec",false);
 const h0=(location.hash||"").slice(1);
 go(PAGES.includes(h0)?h0:"home",{reset:true,keepScroll:true});
 initStore();
+</script>
+
+<script>
+(function(){
+  var KEY="mbtiTripSkin",cur="peach";try{cur=localStorage.getItem(KEY)||"peach"}catch(e){}
+  var sh=document.getElementById("tSheet"),sc=document.getElementById("tScrim");
+  function set(k){if(k==="base")document.documentElement.removeAttribute("data-skin");else document.documentElement.setAttribute("data-skin",k);
+    sh.querySelectorAll(".tcard").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.skin===k))});try{localStorage.setItem(KEY,k)}catch(e){}}
+  function open(){sh.hidden=false;sc.hidden=false;document.getElementById("tClose").focus()}
+  function close(){sh.hidden=true;sc.hidden=true;document.getElementById("themeFab").focus()}
+  document.getElementById("themeFab").onclick=open;document.getElementById("tClose").onclick=close;sc.onclick=close;
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!sh.hidden)close()});
+  sh.addEventListener("click",function(e){var b=e.target.closest(".tcard");if(b)set(b.dataset.skin)});
+  set(cur);
+})();
 </script>
 
 <script>
