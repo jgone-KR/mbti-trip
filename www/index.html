@@ -1757,8 +1757,8 @@ $("fMe").onclick=()=>go("test");
 ["dep","ret"].forEach(k=>$(k).addEventListener("change",e=>{
   if(!e.target.value)return;const [h1,m1]=e.target.value.split(":").map(Number),v=h1+m1/60;
   const dep=k==="dep"?v:st.dep,ret=k==="ret"?v:st.ret;
-  if(!nightsOf(st.len)&&ret<=dep+1){toast("일정 마무리 시간은 첫 일정 시간보다 1시간 이상 늦어야 해요.");e.target.value=fmt(st[k]);return}
-  st[k]=v;savePrefs();
+  if(!nightsOf(st.len)&&ret<=dep+1){toast("일정 마무리 시간은 첫 일정 시간보다 1시간 이상 늦어야 해요.");e.target.value=fmt(st[k]);renderHome();return}
+  st[k]=v;savePrefs();renderHome();
 }));
 $("meChip").onclick=()=>go("test");
 $("goHome").onclick=()=>{const inRec=!$("condBody").hidden;st.rec=build();renderTicket("rec",true);if(inRec){condClose(false);renderRecSum();$("recCond").scrollIntoView({behavior:"smooth",block:"start"});toast("바꾼 조건으로 새 코스를 짰어요")}else go("rec")};
