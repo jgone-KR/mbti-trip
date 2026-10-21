@@ -514,6 +514,27 @@ html:root[data-skin="peach"] .livehero .lk,html:root[data-skin="peach"] .liveher
   @keyframes fadeUp{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
   @keyframes dot{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-4px)}}
 }
+
+/* 날짜·시간: 기기 기본 모양 대신 앱이 직접 그려서 아이폰·갤럭시·PC가 똑같이 보이게 */
+.pk{position:relative}
+.ghost{position:absolute!important;inset:0;width:100%!important;height:100%!important;opacity:0;margin:0;padding:0;border:0;cursor:pointer;-webkit-appearance:none;appearance:none;font-size:16px}
+.ghost::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}
+.tpair{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:4px}
+.tbtn{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:10px;background:var(--chip);color:var(--ink);font-weight:700;font-size:16px;font-variant-numeric:tabular-nums;cursor:pointer;white-space:nowrap}
+.tpair .arr{color:var(--muted);font-weight:700}
+.pk:focus-within{outline:2px solid var(--accent);outline-offset:2px;border-radius:10px}
+.field.pk:focus-within{outline-offset:-2px}
+/* 다른 화면의 시간 칸도 아이콘·정렬을 통일 */
+input[type=time],input[type=date]{-webkit-appearance:none;appearance:none;min-height:36px;text-align:left;line-height:1.2}
+input[type=time]::-webkit-date-and-time-value,input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
+input[type=time]:not(.ghost)::-webkit-calendar-picker-indicator,input[type=date]:not(.ghost)::-webkit-calendar-picker-indicator{display:none}
+input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-width:5.2em}
+.win label{display:grid;grid-template-columns:3.4em auto;gap:6px}
+.win input[type=time]{font-weight:700}
+.themefab{display:none!important}
+.thbtn{all:unset;cursor:pointer;width:36px;height:36px;border-radius:999px;display:grid;place-items:center;background:var(--chip);color:var(--ink)}
+.thbtn svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.thbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style>
 
 <div class="intro" id="intro" role="presentation" aria-hidden="true">
@@ -538,14 +559,14 @@ html:root[data-skin="peach"] .livehero .lk,html:root[data-skin="peach"] .liveher
 
   <!-- 홈 -->
   <section class="page" id="pg-home" aria-labelledby="hello">
-    <div class="appbar"><span class="brand">MBTI <b>즉흥 여행</b></span><div class="abr"><button class="cchip" data-go="wallet" aria-label="내 크레딧"><svg class="coin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="currentColor"/><circle cx="12" cy="12" r="6.5" fill="none" stroke="var(--gold-bg)" stroke-width="1.6"/></svg><span id="cChip">0</span></button><button class="mechip" id="meChip" aria-label="내 성향 검사로 가기"></button></div></div>
+    <div class="appbar"><span class="brand">MBTI <b>즉흥 여행</b></span><div class="abr"><button class="thbtn" type="button" aria-label="테마 바꾸기" onclick="document.getElementById('themeFab').click()"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1 0 1.5-.7 1.5-1.5 0-.5-.2-.8-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.8.7-1.5 1.5-1.5H16a5 5 0 0 0 5-5c0-4.1-4-7.6-9-7.6z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="15" cy="8" r="1"/></svg></button><button class="cchip" data-go="wallet" aria-label="내 크레딧"><svg class="coin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="currentColor"/><circle cx="12" cy="12" r="6.5" fill="none" stroke="var(--gold-bg)" stroke-width="1.6"/></svg><span id="cChip">0</span></button><button class="mechip" id="meChip" aria-label="내 성향 검사로 가기"></button></div></div>
     <h1 class="hello" id="hello">계획대로 안 돼도<br><span>괜찮은 여행</span></h1>
     <button class="livehero" data-go="live" id="liveHero"><span class="lk">지금 여행 중이세요?</span><b>여행 중 모드 열기 ›</b><span class="d">비가 오거나, 지치거나, 술이 당기면 AI가 지금 위치와 시간에 맞춰 남은 일정을 바로 다시 짜 드려요.</span><span class="tags"><i>일몰 계산</i><i>비 오면 실내로</i><i>웨이팅 대안</i><i>오늘 힘들어</i></span></button>
     <h2 style="margin-top:4px">여행 준비하기</h2>
     <div class="search">
       <button class="field" id="fCity"><span class="fi"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span><span class="ft"><span class="fl">여행지</span><span class="fv" id="vCity"></span></span><span class="chev">›</span></button>
-      <label class="field" for="date"><span class="fi"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span><span class="ft"><span class="fl">출발일</span><input type="date" id="date"></span><span class="chev" id="vDow" style="font-size:13px;font-weight:700"></span></label>
-      <div class="field" style="cursor:default"><span class="fi"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span><span class="ft"><span class="fl">현지 일정 시간</span><span class="tpair"><input type="time" id="dep" aria-label="첫날 첫 일정 시작 시간"><span>→</span><input type="time" id="ret" aria-label="마지막 날 일정 마무리 시간"></span><span class="fhelp">교통편 시간 말고, 여행지에서 첫 일정을 시작하고 마지막 날 일정을 마무리할 시간</span></span><span></span></div>
+      <label class="field pk" for="date"><span class="fi"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span><span class="ft"><span class="fl">출발일</span><span class="fv" id="vDate"></span></span><span class="chev">›</span><input type="date" id="date" class="ghost" aria-label="출발일"></label>
+      <div class="field" style="cursor:default"><span class="fi"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span><span class="ft"><span class="fl">현지 일정 시간</span><span class="tpair"><label class="tbtn pk"><span id="vDep"></span><input type="time" id="dep" class="ghost" aria-label="첫날 첫 일정 시작 시간"></label><span class="arr">→</span><label class="tbtn pk"><span id="vRet"></span><input type="time" id="ret" class="ghost" aria-label="마지막 날 일정 마무리 시간"></label></span><span class="fhelp">교통편 시간 말고, 여행지에서 첫 일정을 시작하고 마지막 날 일정을 마무리할 시간</span></span><span></span></div>
       <button class="field" id="fMe"><span class="fi"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span><span class="ft"><span class="fl">내 여행 성향</span><span class="fv" id="vMe"></span></span><span class="chev">›</span></button>
       <div class="lenseg" id="lens" role="group" aria-label="기간"></div>
       <button class="go" id="goHome">코스 추천받기</button>
@@ -1442,7 +1463,9 @@ function renderHome(){
   $("vMe").textContent=`${pr.code} · ${describe(pr)}`;
   const di=$("date");di.min=todayIso();di.value=st.date;
   $("dep").value=fmt(st.dep);$("ret").value=fmt(st.ret);
-  $("vDow").textContent=st.date?DOW[parseD(st.date).getDay()]+"요일":"";
+  {const d=st.date?parseD(st.date):null;$("vDate").textContent=d?`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (${DOW[d.getDay()]})`:"날짜 고르기";}
+  const ap=h=>{let H=Math.floor(h),M=Math.round((h-H)*60);if(M===60){H++;M=0}H%=24;return `${H<12?"오전":"오후"} ${H%12||12}:${pad(M)}`};
+  $("vDep").textContent=ap(st.dep);$("vRet").textContent=ap(st.ret);
   const nn=nightsOf(st.len);
   $("lens").innerHTML=`<button id="len-half" data-l="반나절" aria-pressed="${st.len==="반나절"}">반나절</button><button id="len-day" data-l="하루" aria-pressed="${st.len==="하루"}">당일</button><button id="len-stay" data-l="${lenOf(nn||1)}" aria-pressed="${nn>0}">숙박</button>`
     +(nn?`<div class="nights" role="group" aria-label="숙박 일수"><button id="nMinus" data-n="${nn-1}" ${nn<=1?"disabled":""} aria-label="하루 줄이기">−</button><b>${st.len}</b><button id="nPlus" data-n="${nn+1}" ${nn>=MAXN?"disabled":""} aria-label="하루 늘리기">+</button></div>`:"");
@@ -2324,6 +2347,11 @@ initStore();
     document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest('a[target="_blank"]');if(!a)return;e.preventDefault();location.href=a.href},true);
   }
 })();
+</script>
+
+<script>
+/* PC 크롬은 칸을 눌러도 달력이 안 열려서, 누르면 바로 고르기 창을 열어요 */
+document.addEventListener("click",e=>{const g=e.target.closest&&e.target.closest(".ghost,input[type=time],input[type=date]");if(g&&g.showPicker){try{g.showPicker()}catch(_){}}},true);
 </script>
 </body>
 </html>
