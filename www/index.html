@@ -2175,14 +2175,15 @@ function renderReq(){
 function reqBanner(state,P){
   const el=$("recReq");if(!el)return;
   if(state==="none"){el.innerHTML="";return}
-  if(state==="loading"){el.innerHTML=`<div class="reqban load"><b>요청을 반영하는 중이에요</b><span>“${esc(st.req)}”</span><span class="small">AI가 등록된 장소 중에서 골라 코스를 짜고 있어요. 잠시만요.</span></div>`;return}
+  if(state==="loading"){el.innerHTML=`<div class="reqban load"><b>요청을 반영하는 중이에요</b><span>“${esc(st.appliedReq||st.req)}”</span><span class="small">AI가 등록된 장소 중에서 골라 코스를 짜고 있어요. 잠시만요.</span></div>`;return}
   if(state==="fail"){el.innerHTML=`<div class="reqban fail"><b>요청을 반영하지 못했어요</b><span class="small">${esc(P||"AI 연결이 안 돼서")} 기본 추천을 보여 드려요. 잠시 뒤 <b>다른 코스</b>를 눌러 다시 시도해 보세요.</span></div>`;return}
-  const city=P.city,hint=P.aiHint||(city+" "+(st.req||"").split(",")[0]);
+  const city=P.city,hint=P.aiHint||(city+" "+(P.req||st.appliedReq||"").split(",")[0]);
   const url=isKR(city)?`https://map.kakao.com/link/search/${encodeURIComponent(hint)}`:`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hint)}`;
   el.innerHTML=`<div class="reqban ok"><span class="rtag">AI 요청 반영</span><b>“${esc(P.req)}”</b><p>${esc(P.aiMsg||"")}</p>${P.aiMissing?`<p class="miss">${esc(P.aiMissing)} <a href="${url}" target="_blank" rel="noopener">${mapApp(city)}에서 ‘${esc(hint)}’ 찾기 ›</a></p><p class="small">지도에서 찾은 가게는 <b>고치고 저장</b> → <b>장소 추가</b>에서 이름을 직접 넣을 수 있어요.</p>`:""}<button type="button" class="linkbtn" id="reqClear">요청 지우고 기본 추천 보기</button></div>`;
 }
-async function aiRec(prev){
-  const base=st.rec,req=(st.req||"").trim();if(!req)return;
+async function aiRec(prev,reqIn){
+  const base=st.rec,req=String(reqIn!=null?reqIn:(st.appliedReq||"")).trim();if(!req)return;
+  st.appliedReq=req;
   reqBanner("loading");
   try{
     const sm=await getSample();if(!sm)throw {msg:"AI를 쓸 수 없어서"};
@@ -2273,10 +2274,13 @@ $("ageChips").addEventListener("click",e=>{const b=e.target.closest("[data-age]"
   st[k]=v;syncLen();savePrefs();renderHome();
 }));
 $("meChip").onclick=()=>go("test");
-$("goHome").onclick=()=>{const inRec=!$("condBody").hidden;st.rec=build();renderTicket("rec",true);reqBanner("none");if(inRec){condClose(false);renderRecSum();$("recCond").scrollIntoView({behavior:"smooth",block:"start"});if(!st.req)toast("바꾼 조건으로 새 코스를 짰어요")}else go("rec");if(st.req)aiRec()};
+$("goHome").onclick=()=>{const inRec=!$("condBody").hidden,req=(st.req||"").trim();st.appliedReq=req;st.rec=build();renderTicket("rec",true);reqBanner("none");
+  // 한 번 쓴 추가 요청은 입력칸에서 지워요(다른 지역으로 다시 추천받을 때 모르고 같이 들어가지 않게). 이 코스의 '다른 코스'에는 계속 반영돼요.
+  if(req){st.req="";reqSave();renderReq()}
+  if(inRec){condClose(false);renderRecSum();$("recCond").scrollIntoView({behavior:"smooth",block:"start"});if(!req)toast("바꾼 조건으로 새 코스를 짰어요")}else go("rec");if(req)aiRec(null,req)};
 $("reqChips").onclick=e=>{const b=e.target.closest("button[data-rc]");if(!b)return;const a=reqParts(),c=b.dataset.rc,i=a.indexOf(c);if(i>=0)a.splice(i,1);else a.push(c);st.req=a.join(", ");reqSave();renderReq()};
 $("reqInput").addEventListener("input",e=>{st.req=e.target.value.replace(/\s+/g," ").trimStart();reqSave();renderReq()});
-document.addEventListener("click",e=>{if(e.target&&e.target.id==="reqClear"){st.req="";reqSave();st.rec=build();renderTicket("rec",true);renderRecSum();reqBanner("none");renderReq();toast("요청을 지우고 기본 추천으로 바꿨어요")}});
+document.addEventListener("click",e=>{if(e.target&&e.target.id==="reqClear"){st.req="";st.appliedReq="";reqSave();st.rec=build();renderTicket("rec",true);renderRecSum();reqBanner("none");renderReq();toast("요청을 지우고 기본 추천으로 바꿨어요")}});
 $("picks").onclick=e=>{const b=e.target.closest("button[data-pick]");if(!b)return;setCity(b.dataset.pick);st.rec=build();renderTicket("rec",true);go("rec")};
 function setCity(c){st.city=c;st.country=CITY[c].c;savePrefs()}
 /* 여행지 선택 시트 */
@@ -2333,7 +2337,7 @@ function condClose(rebuild){if($("condBody").hidden)return;condMark.parentNode.i
   if(rebuild&&st.page==="rec"&&recStale()){st.rec=build();renderTicket("rec",true);renderRecSum();toast("바꾼 조건으로 새 코스를 짰어요")}}
 $("condToggle").onclick=()=>{$("condBody").hidden?condOpen():condClose(true)};
 $("recSum").onclick=()=>condOpen();
-$("again").onclick=()=>{const prev=st.rec&&st.rec.req?st.rec.days.map(d=>d.map(s=>s.p[0])):null;st.rec=build();if(st.req){renderTicket("rec");renderRecSum();aiRec(prev);$("recCond").scrollIntoView({behavior:"smooth",block:"start"});return}reqBanner("none");renderTicket("rec");renderRecSum();$("recCond").scrollIntoView({behavior:"smooth",block:"start"});toast("같은 조건으로 다른 코스를 뽑았어요")};
+$("again").onclick=()=>{const prev=st.rec&&st.rec.req?st.rec.days.map(d=>d.map(s=>s.p[0])):null;st.rec=build();if(st.appliedReq){renderTicket("rec");renderRecSum();aiRec(prev,st.appliedReq);$("recCond").scrollIntoView({behavior:"smooth",block:"start"});return}reqBanner("none");renderTicket("rec");renderRecSum();$("recCond").scrollIntoView({behavior:"smooth",block:"start"});toast("같은 조건으로 다른 코스를 뽑았어요")};
 $("copyRec").onclick=()=>copyPlan(st.rec);
 let toPlanT;
 $("toPlan").onclick=()=>{
