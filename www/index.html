@@ -817,6 +817,8 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 /* 주차장 선택 */
 .pkbody{display:flex;flex-direction:column;gap:12px;font-size:15px;line-height:1.55}
 .pkbody p{margin:0}
+.pkbody .pklist{margin:0;padding-left:18px;display:grid;gap:6px;font-size:14px}
+.pkbody .pklist small{color:var(--muted)}
 .pkbody .pkbtn{display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none;text-align:center}
 .pkbody .pkbtn small{font-weight:500;font-size:12.5px;opacity:.85}
 .pkbody .pkalt{display:block;text-align:center;padding:12px;border-radius:12px;border:1.5px solid var(--line);color:var(--ink);font-weight:700;text-decoration:none}
@@ -2072,12 +2074,19 @@ function kfRoute(mode,f,t){
 }
 // 주차장으로 바꿀지는 앱이 마음대로 정하지 않고, 이름과 거리를 보여 주고 직접 고르게 해요
 const josa=(w,a,b)=>{const c=String(w).trim().slice(-1).charCodeAt(0),j=c>=0xAC00&&c<=0xD7A3?(c-0xAC00)%28:0;return w+(j&&!(a==="으로"&&j===8)?a:b)};
-function parkAsk(dest,park,urlDest,urlPark){
-  $("pkTitle").textContent=`${dest}까지 차로 가요`;
-  $("pkBody").innerHTML=`<p>${esc(josa(dest,"은","는"))} 산이나 언덕 위라 <b>차로 바로 앞까지 못 갈 수 있어요.</b> 카카오맵에서 "길이 없어요"가 나오면 주차장으로 안내받으세요.</p>
-    <a class="go pkbtn" href="${esc(urlPark)}" target="_blank" rel="noopener" data-pk="1">근처 주차장으로 안내<small>${esc(park.name)} · ${esc(dest)}에서 약 ${park.m>=1000?(park.m/1000).toFixed(1)+"km":park.m+"m"}</small></a>
-    <a class="pkalt" href="${esc(urlDest)}" target="_blank" rel="noopener" data-pk="1">${esc(josa(dest,"으로","로"))} 바로 안내</a>
-    <p class="small">주차장 이름은 카카오맵 검색 결과예요. 내린 뒤에는 카카오맵에서 도보로 바꿔 확인하세요.</p>`;
+// 출발지나 도착지가 산·전망대 위라 차가 바로 닿지 않을 때: 주차장으로 바꿀지 이름과 거리를 보여 주고 직접 고르게 해요
+function parkAsk(o){
+  const dist=m=>m>=1000?(m/1000).toFixed(1)+"km":m+"m";
+  const lines=[];
+  if(o.fromPark)lines.push(`<li><b>출발</b> ${esc(o.fromName)} → <b>${esc(o.fromPark.name)}</b> <small>(약 ${dist(o.fromPark.m)}, 걸어서 내려가 차를 타는 곳)</small></li>`);
+  if(o.toPark)lines.push(`<li><b>도착</b> ${esc(o.toName)} → <b>${esc(o.toPark.name)}</b> <small>(약 ${dist(o.toPark.m)}, 차를 세우고 걸어 올라가는 곳)</small></li>`);
+  const who=[o.fromPark?o.fromName:"",o.toPark?o.toName:""].filter(Boolean).map(n=>esc(n)).join(", ");
+  $("pkTitle").textContent="자동차 길찾기";
+  $("pkBody").innerHTML=`<p>${josa(who,"은","는")} 산이나 언덕 위라 <b>차가 바로 앞까지 못 갈 수 있어요.</b> 그대로 찾으면 카카오맵에서 "길이 없어요"가 나올 수 있어요.</p>
+    <ul class="pklist">${lines.join("")}</ul>
+    <a class="go pkbtn" href="${esc(o.urlPark)}" target="_blank" rel="noopener" data-pk="1">주차장 기준으로 안내<small>위처럼 바꿔서 자동차 길찾기를 열어요</small></a>
+    <a class="pkalt" href="${esc(o.urlOrig)}" target="_blank" rel="noopener" data-pk="1">바꾸지 않고 그대로 안내</a>
+    <p class="small">주차장 이름은 카카오맵 검색 결과예요. 주차장까지 걷는 길은 카카오맵에서 도보로 바꿔 확인하세요.</p>`;
   openSheet("parkSheet");
 }
 document.addEventListener("click",e=>{if(e.target.closest("[data-pk]"))setTimeout(closeSheet,300)});
@@ -2087,8 +2096,9 @@ document.addEventListener("click",async e=>{
   if(a.dataset.busy)return;a.dataset.busy="1";
   const city=decodeURIComponent(a.dataset.kf),mode=a.dataset.kfm,F=decodeURIComponent(a.dataset.kff).split("|"),T=decodeURIComponent(a.dataset.kft).split("|");
   const wantPark=mode==="car"&&OUTDOOR.test(T[0]);
+  const wantParkFrom=mode==="car"&&F[1]!=="-"&&!!F[0]&&OUTDOOR.test(F[0]);
   // 설치한 앱에서는 빈 창을 먼저 띄우지 않아요(돌아왔을 때 빈 창이 남아서). 주차장을 물어볼 수도 있는 곳도 창을 먼저 안 띄워요.
-  const win=STANDALONE()||wantPark?null:window.open("","_blank");
+  const win=STANDALONE()||wantPark||wantParkFrom?null:window.open("","_blank");
   try{if(win)win.document.write('<meta name="viewport" content="width=device-width"><p style="font:16px system-ui;padding:24px;color:#555">카카오맵에서 위치를 찾는 중이에요…</p>')}catch(_){}
   const old=a.textContent;a.textContent="위치 찾는 중…";a.style.opacity=".6";
   const done=()=>{a.textContent=old;a.style.opacity="";delete a.dataset.busy};
@@ -2096,10 +2106,12 @@ document.addEventListener("click",async e=>{
     const t=await kfResolve(city,T[0],wantPark);
     if(!t){done();toast("카카오맵에서 이 장소를 확인하지 못해서 검색 화면으로 열어요. 이름과 주소를 확인하고 도착을 눌러 주세요");kfGo(`https://map.kakao.com/link/search/${encodeURIComponent(qOf(T[0],city))}`,win);return}
     if(t.byId){done();toast("출발지는 지금 내 위치로 안내해요");kfGo(`https://map.kakao.com/link/to/${t.byId}`,win);return}
-    const f=F[1]!=="-"&&F[0]?await kfResolve(city,F[0]).catch(()=>null):null;
+    const f=F[1]!=="-"&&F[0]?await kfResolve(city,F[0],wantParkFrom).catch(()=>null):null;
     const f2=f&&!f.byId?f:null;
     done();
-    if(wantPark&&t.park){parkAsk(T[0],t.park,kfRoute(mode,f2,t),kfRoute(mode,f2,{name:kName(t.park.name),lat:t.park.lat,lng:t.park.lng}));return}
+    const pt=pk=>({name:kName(pk.name),lat:pk.lat,lng:pk.lng});
+    const toPark=wantPark&&t.park?t.park:null,fromPark=wantParkFrom&&f2&&f2.park?f2.park:null;
+    if(toPark||fromPark){parkAsk({fromName:F[0],toName:T[0],fromPark,toPark,urlOrig:kfRoute(mode,f2,t),urlPark:kfRoute(mode,fromPark?pt(fromPark):f2,toPark?pt(toPark):t)});return}
     kfGo(kfRoute(mode,f2,t),win);
   }catch(err){done();toast("지금 위치를 확인하지 못해서 카카오맵 검색 화면으로 열어요");kfGo(KID[T[0]]?`https://map.kakao.com/link/map/${KID[T[0]]}`:`https://map.kakao.com/link/search/${encodeURIComponent(qOf(T[0],city))}`,win)}
 });
