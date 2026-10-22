@@ -16,7 +16,7 @@ type Doc = { id?: string; place_name: string; x: string; y: string; road_address
 async function search(key: string, q: string, x?: number, y?: number, radius = 20000, cat = ""): Promise<Doc[]> {
   const u = new URL("https://dapi.kakao.com/v2/local/search/keyword.json");
   u.searchParams.set("query", q);
-  u.searchParams.set("size", "5");
+  u.searchParams.set("size", cat ? "5" : "15");
   if (typeof x === "number" && typeof y === "number") {
     u.searchParams.set("x", String(x)); u.searchParams.set("y", String(y));
     u.searchParams.set("radius", String(radius)); u.searchParams.set("sort", cat ? "distance" : "accuracy");
@@ -41,16 +41,22 @@ Deno.serve(async (req) => {
       const q = String(p?.q ?? "").slice(0, 60).trim();
       if (!q) { out.push(null); continue; }
       const x = typeof p.lng === "number" ? p.lng : undefined, y = typeof p.lat === "number" ? p.lat : undefined;
+      // 앱이 확인해 둔 카카오 장소 ID가 있으면 그 ID와 같은 장소만 써요 (다른 지점·다른 가게로 안내하지 않게)
+      const want = typeof p.id === "string" && /^\d{3,12}$/.test(p.id) ? p.id : "";
       let docs = await search(key, q, x, y);
-      if (!docs.length && p.alt) docs = await search(key, String(p.alt).slice(0, 60), x, y);
-      const d = docs[0];
-      if (!d) { out.push(null); continue; }
+      let d = want ? docs.find((v) => v.id === want) : docs[0];
+      if (!d && p.alt) { const d2 = await search(key, String(p.alt).slice(0, 60), x, y); d = want ? d2.find((v) => v.id === want) : d2[0]; }
+      if (!d) { out.push(want ? { id: want, miss: 1 } : null); continue; }
       const hit: Record<string, unknown> = { id: d.id, name: d.place_name, lat: Number(d.y), lng: Number(d.x), addr: d.road_address_name || d.address_name || "" };
       // 전망대·산·공원처럼 차가 끝까지 못 가는 곳: 1.5km 안의 주차장을 같이 알려 줘요
       if (p.park) {
         const pk = (await search(key, d.place_name + " 주차장", Number(d.x), Number(d.y), 1500, "PK6"))[0]
           ?? (await search(key, "주차장", Number(d.x), Number(d.y), 1500, "PK6"))[0];
-        if (pk) hit.park = { name: pk.place_name, lat: Number(pk.y), lng: Number(pk.x) };
+        if (pk) {
+          const r = Math.PI / 180, la1 = Number(d.y) * r, la2 = Number(pk.y) * r, dl = la2 - la1, dn = (Number(pk.x) - Number(d.x)) * r;
+          const m = Math.round(2 * 6371000 * Math.asin(Math.sqrt(Math.sin(dl / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dn / 2) ** 2)));
+          hit.park = { name: pk.place_name, lat: Number(pk.y), lng: Number(pk.x), m };
+        }
       }
       out.push(hit);
     }
