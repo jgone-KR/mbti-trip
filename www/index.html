@@ -1651,6 +1651,10 @@ function nearURL(city,refName,co,kw){
 }
 function routeLinks(city,from,to,L,label){
   const pm=modeOf(L),A=`target="_blank" rel="noopener"`;
+  if(isKR(city)&&kfOn()&&to&&to.name){
+    const fb=m=>isV(to.name)?routeURL(city,from,to,m):placeURL(to.name,city);
+    return `<span class="rl"><a class="rmain" href="${fb(pm)}" ${A} ${kfAttr(city,from,to,pm)}>${label||"카카오맵 길찾기"}</a><span class="ralt">${["transit","car","walk"].filter(m=>m!==pm).map(m=>`<a href="${fb(m)}" ${A} ${kfAttr(city,from,to,m)}>${MODELAB[m]}</a>`).join("")}</span></span>`;
+  }
   // 위치 확인 전인 곳: 카카오맵은 좌표가 있어야 길찾기가 열려서, 이름으로 길을 찾는 구글 지도 대중교통 길찾기로 열어요
   if(isKR(city)&&!isV(to.name)){const o=isPlaceName(from.name)?`&origin=${encodeURIComponent(qOf(from.name,city))}`:"";
     const g=`https://www.google.com/maps/dir/?api=1${o}&destination=${encodeURIComponent(qOf(to.name,city))}&travelmode=transit`;
@@ -2031,11 +2035,17 @@ function kfAttr(city,from,to,mode){
   const g=`https://www.google.com/maps/dir/?api=1${o}&destination=${encodeURIComponent(qOf(to.name,city))}&travelmode=transit`;
   return `data-kf="${enc(city)}" data-kfm="${mode}" data-kff="${enc(pt(from))}" data-kft="${enc(pt(to))}" data-kfg="${esc(g)}"`;
 }
-async function kfResolve(city,name){
-  if(isV(name))return {name:kName(name),lat:GEOV[name][0],lng:GEOV[name][1]};
-  const co=COORD[name]||null,I=INFO[name],q=qOf(name,city),alt=I&&I[0]?city+" "+I[0].split("·")[0].trim():"";
-  const r=await window.TRIP_BACKEND.placeFind([{q,alt,lat:co?co[0]:undefined,lng:co?co[1]:undefined}]);
-  return r&&r[0]?{name:kName(r[0].name||name),lat:r[0].lat,lng:r[0].lng}:null;
+// 차로 끝까지 못 가는 곳(전망대·산·오름·숲길·해변 등)은 자동차 길찾기를 근처 주차장으로 안내해요
+const OUTDOOR=/전망|산$|산 |봉$|오름|숲|길$|둘레|해변|해수욕장|해안|공원|폭포|섬$|대교|케이블카|스카이워크|등대|곶|성곽|낙조|일출|계곡|수목원/;
+async function kfResolve(city,name,park){
+  const co=(typeof GEOV!=="undefined"&&GEOV[name])||COORD[name]||null;
+  if(isV(name)&&!park)return {name:kName(name),lat:GEOV[name][0],lng:GEOV[name][1]};
+  const I=INFO[name],q=qOf(name,city),alt=I&&I[0]?city+" "+I[0].split("·")[0].trim():"";
+  const r=await window.TRIP_BACKEND.placeFind([{q,alt,lat:co?co[0]:undefined,lng:co?co[1]:undefined,park:!!park}]);
+  const h=r&&r[0];
+  if(!h)return isV(name)?{name:kName(name),lat:GEOV[name][0],lng:GEOV[name][1]}:null;
+  if(park&&h.park)return {name:kName(h.park.name),lat:h.park.lat,lng:h.park.lng,parkOf:h.name};
+  return {name:kName(h.name||name),lat:h.lat,lng:h.lng};
 }
 document.addEventListener("click",async e=>{
   const a=e.target.closest("a[data-kf]");if(!a||!kfOn())return;
@@ -2048,7 +2058,8 @@ document.addEventListener("click",async e=>{
   const old=a.textContent;a.textContent="위치 찾는 중…";a.style.opacity=".6";
   let url=a.getAttribute("href");
   try{
-    const t=await kfResolve(city,T[0]);
+    const t=await kfResolve(city,T[0],mode==="car"&&OUTDOOR.test(T[0]));
+    if(t&&t.parkOf)toast(`${t.parkOf}은(는) 차로 끝까지 못 가서 ${decodeURIComponent(t.name)}까지 안내해요`);
     if(t){const f=F[1]!=="-"&&F[0]?await kfResolve(city,F[0]).catch(()=>null):null;
       const md={car:"car",transit:"traffic",walk:"walk"}[mode]||"traffic",T2=`${t.name},${t.lat},${t.lng}`;
       url=f?`https://map.kakao.com/link/by/${md}/${f.name},${f.lat},${f.lng}/${T2}`:`https://map.kakao.com/link/to/${T2}`}

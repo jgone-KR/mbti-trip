@@ -11,16 +11,17 @@ const CORS = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...CORS, "content-type": "application/json", "cache-control": "no-store" } });
 
-type Doc = { place_name: string; x: string; y: string; road_address_name?: string; address_name?: string; distance?: string };
+type Doc = { id?: string; place_name: string; x: string; y: string; road_address_name?: string; address_name?: string; distance?: string };
 
-async function search(key: string, q: string, x?: number, y?: number): Promise<Doc[]> {
+async function search(key: string, q: string, x?: number, y?: number, radius = 20000, cat = ""): Promise<Doc[]> {
   const u = new URL("https://dapi.kakao.com/v2/local/search/keyword.json");
   u.searchParams.set("query", q);
   u.searchParams.set("size", "5");
   if (typeof x === "number" && typeof y === "number") {
     u.searchParams.set("x", String(x)); u.searchParams.set("y", String(y));
-    u.searchParams.set("radius", "20000"); u.searchParams.set("sort", "accuracy");
+    u.searchParams.set("radius", String(radius)); u.searchParams.set("sort", cat ? "distance" : "accuracy");
   }
+  if (cat) u.searchParams.set("category_group_code", cat);
   const r = await fetch(u, { headers: { Authorization: "KakaoAK " + key } });
   if (!r.ok) throw new Error("kakao " + r.status + " " + (await r.text()).slice(0, 200));
   return (await r.json()).documents ?? [];
@@ -43,7 +44,15 @@ Deno.serve(async (req) => {
       let docs = await search(key, q, x, y);
       if (!docs.length && p.alt) docs = await search(key, String(p.alt).slice(0, 60), x, y);
       const d = docs[0];
-      out.push(d ? { name: d.place_name, lat: Number(d.y), lng: Number(d.x), addr: d.road_address_name || d.address_name || "" } : null);
+      if (!d) { out.push(null); continue; }
+      const hit: Record<string, unknown> = { id: d.id, name: d.place_name, lat: Number(d.y), lng: Number(d.x), addr: d.road_address_name || d.address_name || "" };
+      // 전망대·산·공원처럼 차가 끝까지 못 가는 곳: 1.5km 안의 주차장을 같이 알려 줘요
+      if (p.park) {
+        const pk = (await search(key, d.place_name + " 주차장", Number(d.x), Number(d.y), 1500, "PK6"))[0]
+          ?? (await search(key, "주차장", Number(d.x), Number(d.y), 1500, "PK6"))[0];
+        if (pk) hit.park = { name: pk.place_name, lat: Number(pk.y), lng: Number(pk.x) };
+      }
+      out.push(hit);
     }
     return json({ results: out });
   } catch (e) {
