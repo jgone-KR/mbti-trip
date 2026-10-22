@@ -1654,7 +1654,9 @@ function routeLinks(city,from,to,L,label){
   // 위치 확인 전인 곳: 카카오맵은 좌표가 있어야 길찾기가 열려서, 이름으로 길을 찾는 구글 지도 대중교통 길찾기로 열어요
   if(isKR(city)&&!isV(to.name)){const o=isPlaceName(from.name)?`&origin=${encodeURIComponent(qOf(from.name,city))}`:"";
     const g=`https://www.google.com/maps/dir/?api=1${o}&destination=${encodeURIComponent(qOf(to.name,city))}&travelmode=transit`;
+    if(kfOn())return `<span class="rl"><a class="rmain" href="${placeURL(to.name,city)}" ${A} ${kfAttr(city,from,to,pm)}>${label||"카카오맵 길찾기"}</a><span class="ralt">${["transit","car","walk"].filter(m=>m!==pm).map(m=>`<a href="${placeURL(to.name,city)}" ${A} ${kfAttr(city,from,to,m)}>${MODELAB[m]}</a>`).join("")}<a href="${g}" ${A}>구글 지도</a></span></span>`;
     return `<span class="rl"><a class="rmain" href="${g}" ${A}>${label||"길찾기"}</a><span class="ralt"><a href="${placeURL(to.name,city)}" ${A}>카카오맵에서 찾기</a></span><span class="ralt rhint">이곳은 카카오맵 위치 확인 전이라 <b>구글 지도 대중교통 길찾기</b>로 열려요. 자동차·도보는 카카오맵에서 찾은 뒤 <b>도착</b>을 누르세요</span></span>`}
+  if(isKR(city)&&!isV(from.name)&&isPlaceName(from.name)&&kfOn())return `<span class="rl"><a class="rmain" href="${routeURL(city,from,to,pm)}" ${A} ${kfAttr(city,from,to,pm)}>${label||"카카오맵 길찾기"}</a><span class="ralt">${["transit","car","walk"].filter(m=>m!==pm).map(m=>`<a href="${routeURL(city,from,to,m)}" ${A} ${kfAttr(city,from,to,m)}>${MODELAB[m]}</a>`).join("")}</span></span>`;
   if(isKR(city)&&!isV(from.name)&&isPlaceName(from.name)){const g=`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(qOf(from.name,city))}&destination=${encodeURIComponent(qOf(to.name,city))}&travelmode=transit`;
     return `<span class="rl"><a class="rmain" href="${g}" ${A}>${label||"길찾기"}</a><span class="ralt"><a href="${routeURL(city,from,to,pm)}" ${A}>카카오맵(내 위치에서)</a></span><span class="ralt rhint">출발지가 카카오맵 위치 확인 전이라 <b>구글 지도 대중교통 길찾기</b>로 열려요</span></span>`}
   if(isKR(city)&&!isV(from.name))return `<span class="rl"><a class="rmain" href="${routeURL(city,from,to,pm)}" ${A}>${label||"카카오맵 길찾기"}</a><span class="ralt rhint">지금 내 위치에서 출발하는 길찾기가 열려요</span></span>`;
@@ -2018,6 +2020,39 @@ document.addEventListener("click",e=>{
   const li=e.target.closest(".mlist li[data-mk]");if(li&&!li.classList.contains("nogeo")){selMap(M,+li.dataset.mk,true);M.el.scrollIntoView({behavior:"smooth",block:"center"})}
 });
 window.addEventListener("resize",()=>{for(const k in MAPS){const M=MAPS[k];if(document.contains(M.el))drawMap(M)}});
+
+/* ---------- 카카오 실시간 위치 찾기 길찾기 ---------- */
+// 위치 확인 전인 국내 장소는 길찾기를 누를 때 서버(place-find)가 카카오에서 좌표를 찾아 줘요. 카카오 정책상 결과는 저장하지 않아요.
+const kfOn=()=>{try{return !!(window.TRIP_BACKEND&&window.TRIP_BACKEND.placeFind&&isTB())}catch(e){return false}};
+function kfAttr(city,from,to,mode){
+  const enc=v=>esc(encodeURIComponent(v||""));
+  const pt=x=>x&&x.name?[x.name,isV(x.name)?"v":isPlaceName(x.name)?"q":"-"].join("|"):"";
+  return `data-kf="${enc(city)}" data-kfm="${mode}" data-kff="${enc(pt(from))}" data-kft="${enc(pt(to))}"`;
+}
+async function kfResolve(city,name){
+  if(isV(name))return {name:kName(name),lat:GEOV[name][0],lng:GEOV[name][1]};
+  const co=COORD[name]||null,I=INFO[name],q=qOf(name,city),alt=I&&I[0]?city+" "+I[0].split("·")[0].trim():"";
+  const r=await window.TRIP_BACKEND.placeFind([{q,alt,lat:co?co[0]:undefined,lng:co?co[1]:undefined}]);
+  return r&&r[0]?{name:kName(r[0].name||name),lat:r[0].lat,lng:r[0].lng}:null;
+}
+document.addEventListener("click",async e=>{
+  const a=e.target.closest("a[data-kf]");if(!a||!kfOn())return;
+  e.preventDefault();
+  const city=decodeURIComponent(a.dataset.kf),mode=a.dataset.kfm,F=decodeURIComponent(a.dataset.kff).split("|"),T=decodeURIComponent(a.dataset.kft).split("|");
+  const win=window.open("","_blank");
+  try{if(win)win.document.write('<meta name="viewport" content="width=device-width"><p style="font:16px system-ui;padding:24px;color:#555">카카오맵에서 위치를 찾는 중이에요…</p>')}catch(_){}
+  const old=a.textContent;a.textContent="위치 찾는 중…";a.style.opacity=".6";
+  let url=a.getAttribute("href");
+  try{
+    const t=await kfResolve(city,T[0]);
+    if(t){const f=F[1]!=="-"&&F[0]?await kfResolve(city,F[0]).catch(()=>null):null;
+      const md={car:"car",transit:"traffic",walk:"walk"}[mode]||"traffic",T2=`${t.name},${t.lat},${t.lng}`;
+      url=f?`https://map.kakao.com/link/by/${md}/${f.name},${f.lat},${f.lng}/${T2}`:`https://map.kakao.com/link/to/${T2}`}
+    else toast("카카오맵에서 이 장소를 찾지 못해서 검색으로 열어요");
+  }catch(err){toast("위치를 찾지 못해서 카카오맵 검색으로 열어요")}
+  a.textContent=old;a.style.opacity="";
+  if(win&&!win.closed)win.location.href=url;else location.href=url;
+});
 /* ---------- 바텀시트 ---------- */
 let lastFocus=null;
 function openSheet(id){st.openSheet=id;lastFocus=document.activeElement;$("scrim").hidden=false;$(id).hidden=false;$(id).querySelector(".sclose").focus()}

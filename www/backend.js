@@ -89,6 +89,13 @@
       if (!r.ok) throw { code: j && j.error === "busy" ? "busy" : r.status === 429 ? "rate_limited" : "unavailable", message: j && j.error };
       return j.result;
     },
+    // 길찾기용 장소 위치를 카카오에서 실시간으로 찾기 (결과는 저장하지 않아요)
+    placeFind: async function (places) {
+      var r = await fetch(U + "/functions/v1/place-find", { method: "POST", headers: await headers(), body: JSON.stringify({ places: places }) });
+      var j = await r.json().catch(function () { return {}; });
+      if (!r.ok || !Array.isArray(j.results)) throw { code: "unavailable" };
+      return j.results;
+    },
     // 오늘 남은 AI 횟수만 확인 (횟수 차감 없음)
     aiUsage: async function () {
       var r = await fetch(U + "/functions/v1/ai-replan", { method: "POST", headers: await headers(), body: JSON.stringify({ peek: true }) });
