@@ -779,6 +779,40 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 .acts a.igl{color:#c13584}
 .why .hotw{background:linear-gradient(90deg,rgba(253,186,116,.35),rgba(236,72,153,.22))}
 .why .hotw b{color:#c13584}
+
+/* 코스 지도 */
+.vmode{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:12px 16px 4px;padding:4px;border-radius:12px;background:var(--chip)}
+.vmode button{all:unset;box-sizing:border-box;cursor:pointer;text-align:center;padding:8px 4px;border-radius:9px;font-weight:700;font-size:14.5px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:6px}
+.vmode button svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.vmode button[aria-selected="true"]{background:var(--paper);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.mapwrap{padding:8px 16px 4px}
+.cmap{position:relative;height:min(62vh,440px);border-radius:16px;overflow:hidden;background:#e9e4dc;touch-action:none;user-select:none;-webkit-user-select:none;border:1px solid var(--line)}
+.cmap .tl{position:absolute;inset:0}
+.cmap .tl img{position:absolute;width:256px;height:256px;max-width:none;pointer-events:none;-webkit-user-drag:none}
+.cmap.notile{background:repeating-linear-gradient(0deg,transparent 0 47px,rgba(0,0,0,.05) 47px 48px),repeating-linear-gradient(90deg,#efe9df 0 47px,rgba(0,0,0,.05) 47px 48px)}
+.cmap svg.rt{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.cmap .pn{position:absolute;inset:0;pointer-events:none}
+.mpin{all:unset;pointer-events:auto;cursor:pointer;position:absolute;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;color:#fff;font:800 13px/28px var(--body,system-ui);text-align:center;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.mpin.sel{transform:scale(1.25);z-index:3;box-shadow:0 0 0 4px rgba(0,0,0,.18),0 2px 6px rgba(0,0,0,.35)}
+.mpin.me{width:16px;height:16px;margin:-8px 0 0 -8px;background:#1a73e8;border-width:3px}
+.mctl{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:4}
+.mctl button{all:unset;cursor:pointer;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.95);color:#222;font:700 19px/36px system-ui;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.mctl button.fit{font-size:11.5px;line-height:1.1;display:grid;place-items:center}
+.mattr{position:absolute;right:0;bottom:0;z-index:4;font-size:10px;padding:2px 6px;background:rgba(255,255,255,.8);color:#444;border-top-left-radius:6px}
+.minfo{position:absolute;left:10px;right:56px;bottom:22px;z-index:4;background:var(--paper);color:var(--ink);border-radius:12px;padding:10px 12px;box-shadow:0 3px 12px rgba(0,0,0,.25);font-size:14px;display:flex;flex-direction:column;gap:3px}
+.minfo b{font-size:15px}.minfo .r{display:flex;gap:12px;flex-wrap:wrap;margin-top:3px}.minfo a{color:var(--accent);font-weight:700;text-decoration:none}
+.mleg{display:flex;flex-wrap:wrap;gap:6px 12px;margin:10px 2px 0;font-size:13px;color:var(--muted)}
+.mleg i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.mlist{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px}
+.mlist li{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;background:var(--paper);border:1px solid var(--line);cursor:pointer}
+.mlist li.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.mlist .n{flex:none;width:24px;height:24px;border-radius:50%;color:#fff;font-weight:800;font-size:12.5px;display:grid;place-items:center}
+.mlist .t{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;min-width:42px}
+.mlist .nm{font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mlist li.nogeo{opacity:.6;cursor:default}
+.mfoot{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.mfoot .gbtn2{all:unset;box-sizing:border-box;cursor:pointer;text-align:center;padding:12px;border-radius:12px;background:var(--ink);color:var(--paper);font-weight:700}
+.mfoot .small{margin:0}
 </style>
 
 <div class="onb" id="onb" role="dialog" aria-modal="true" aria-label="앱 사용법" hidden>
@@ -1879,6 +1913,106 @@ async function peekAi(force){
 window.addEventListener("aiusage",e=>setAiUsage(e.detail));
 document.addEventListener("click",e=>{if(e.target.closest("[data-aiq]")){renderAiq();openSheet("aiSheet");peekAi()}});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)peekAi()});
+
+/* ---------- 코스 지도 ---------- */
+// 지도 그림: CARTO(OpenStreetMap 데이터). 키가 필요 없고, 장소 사이 선은 직선이에요(실제 도로가 아님).
+const DAYC=["#E0603A","#2F7DE1","#2A9D6F","#9B5DE5","#E39A1B","#D6336C","#4B5563"];
+const coOf=n=>(typeof GEOV!=="undefined"&&GEOV[n])||COORD[n]||null;
+st.vm=st.vm||{};
+const vmOf=w=>st.vm[w]||"list";
+function vmodeHTML(w){const m=vmOf(w);
+  return `<div class="vmode" role="tablist" aria-label="보기 방식"><button role="tab" data-vm="list" aria-selected="${m==="list"}"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>목록</button><button role="tab" data-vm="map" aria-selected="${m==="map"}"><svg viewBox="0 0 24 24"><path d="M9 4l-5 2v14l5-2 6 2 5-2V4l-5 2z"/><path d="M9 4v14M15 6v14"/></svg>지도</button></div>`}
+function mapStops(P,dv){const out=[];P.days.forEach((day,d)=>{if(dv!=="all"&&dv!==d)return;day.forEach((s,i)=>{if(isFreeStop(s))return;out.push({d,i,s,co:s.custom?null:coOf(s.p[0])})})});return out}
+function gmapsAll(P,d){
+  const day=P.days[d].filter(s=>!isFreeStop(s)&&!s.custom);if(day.length<2)return "";
+  const q=s=>encodeURIComponent(qOf(s.p[0],P.city)),mid=day.slice(1,-1).slice(0,8).map(q).join("%7C");
+  return `https://www.google.com/maps/dir/?api=1&origin=${q(day[0])}&destination=${q(day[day.length-1])}${mid?"&waypoints="+mid:""}&travelmode=transit`;
+}
+function mapPanelHTML(w,P,dv){
+  const L=mapStops(P,dv),no=L.filter(x=>!x.co).length,multi=P.days.length>1;
+  const list=L.map((x,k)=>`<li data-mk="${k}" class="${x.co?"":"nogeo"}"><span class="n" style="background:${DAYC[x.d%7]}">${x.i+1}</span><span class="t">${fmt(x.s.h)}</span><span class="nm">${multi&&dv==="all"?`<small style="color:var(--muted);font-weight:600">${x.d+1}일차 · </small>`:""}${esc(x.s.p[0])}</span></li>`).join("");
+  const leg=multi&&dv==="all"?`<div class="mleg">${P.days.map((_,d)=>`<span><i style="background:${DAYC[d%7]}"></i>${d+1}일차</span>`).join("")}</div>`:"";
+  const days=dv==="all"?P.days.map((_,d)=>d):[dv];
+  const kr=isKR(P.city);
+  const foot=kr?`<p class="small">선은 장소 순서를 이은 직선이에요. 실제 길은 목록 보기의 구간별 <b>길찾기</b>(카카오맵)로 확인하세요.</p>`
+    :days.map(d=>{const u=gmapsAll(P,d);return u?`<a class="gbtn2" href="${u}" target="_blank" rel="noopener">${multi?d+1+"일차 ":""}전체 경로 구글 지도에서 열기</a>`:""}).join("")+`<p class="small">선은 장소 순서를 이은 직선이에요. 구글 지도에서는 실제 길과 대중교통으로 보여 줘요.</p>`;
+  return `<div class="mapwrap"><div class="cmap" id="cmap-${w}" role="region" aria-label="코스 지도"><div class="tl"></div><svg class="rt"></svg><div class="pn"></div>
+    <div class="mctl"><button type="button" data-mz="1" aria-label="확대">+</button><button type="button" data-mz="-1" aria-label="축소">−</button><button type="button" class="fit" data-mfit aria-label="코스 전체 보기">전체</button></div>
+    <div class="mattr">© OpenStreetMap · © CARTO</div></div>${leg}
+    <ol class="mlist">${list}</ol>${no?`<p class="small" style="margin-top:8px">직접 넣은 장소 ${no}곳은 위치를 몰라서 지도에 없어요.</p>`:""}<div class="mfoot">${foot}</div></div>`;
+}
+const MAPS={};
+const lng2x=(lng,z)=>(lng+180)/360*256*2**z;
+const lat2y=(lat,z)=>{const r=lat*Math.PI/180;return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*256*2**z};
+function mountMap(w,P,dv){
+  const el=$("cmap-"+w);if(!el)return;
+  const L=mapStops(P,dv),pts=L.filter(x=>x.co);
+  const M={w,el,L,pts,z:12,cx:0,cy:0,sel:null,imgs:{},fails:0,P,dv};MAPS[w]=M;
+  if(!pts.length){el.classList.add("notile");el.insertAdjacentHTML("beforeend",`<p class="small" style="position:absolute;inset:auto 0 45%;text-align:center">지도에 표시할 장소가 없어요</p>`);return}
+  requestAnimationFrame(()=>{fitMap(M);drawMap(M)});
+  // 끌어서 이동, 두 손가락으로 확대·축소
+  const ptr=new Map();let last=null,pinch=null,moved=0,tapT=0;
+  el.addEventListener("pointerdown",e=>{if(e.target.closest(".mctl,.minfo,.mpin"))return;el.setPointerCapture(e.pointerId);ptr.set(e.pointerId,[e.clientX,e.clientY]);moved=0;
+    if(ptr.size===2){const [a,b]=[...ptr.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1]),z:M.z}}else last=[e.clientX,e.clientY]});
+  el.addEventListener("pointermove",e=>{if(!ptr.has(e.pointerId))return;ptr.set(e.pointerId,[e.clientX,e.clientY]);
+    if(ptr.size===2&&pinch){const [a,b]=[...ptr.values()];const r=Math.hypot(a[0]-b[0],a[1]-b[1])/pinch.d;const nz=Math.round(pinch.z+Math.log2(r));if(nz!==M.z)zoomMap(M,nz-M.z);moved=9;return}
+    if(last){const dx=e.clientX-last[0],dy=e.clientY-last[1];moved+=Math.abs(dx)+Math.abs(dy);M.cx-=dx;M.cy-=dy;last=[e.clientX,e.clientY];drawMap(M)}});
+  const up=e=>{ptr.delete(e.pointerId);if(ptr.size<2)pinch=null;if(!ptr.size){if(moved<6&&!e.target.closest(".mctl,.minfo,.mpin")){const now=Date.now();if(now-tapT<320){const r=el.getBoundingClientRect();zoomMap(M,1,e.clientX-r.left,e.clientY-r.top)}else selMap(M,null);tapT=now}last=null}else{const v=[...ptr.values()][0];last=v}};
+  el.addEventListener("pointerup",up);el.addEventListener("pointercancel",up);
+  el.addEventListener("wheel",e=>{e.preventDefault();const r=el.getBoundingClientRect();zoomMap(M,e.deltaY<0?1:-1,e.clientX-r.left,e.clientY-r.top)},{passive:false});
+}
+function fitMap(M){
+  const W=M.el.clientWidth||340,H=M.el.clientHeight||400;
+  const la=M.pts.map(x=>x.co[0]),lo=M.pts.map(x=>x.co[1]);
+  const n=Math.max(...la),s0=Math.min(...la),e=Math.max(...lo),w0=Math.min(...lo);
+  let z=16;for(;z>3;z--){if(lng2x(e,z)-lng2x(w0,z)<=W-70&&lat2y(s0,z)-lat2y(n,z)<=H-90)break}
+  M.z=Math.min(z,16);M.cx=(lng2x(e,M.z)+lng2x(w0,M.z))/2;M.cy=(lat2y(s0,M.z)+lat2y(n,M.z))/2+18;
+}
+function zoomMap(M,dz,px,py){
+  const nz=Math.max(3,Math.min(18,M.z+dz));if(nz===M.z)return;
+  const W=M.el.clientWidth,H=M.el.clientHeight;if(px==null){px=W/2;py=H/2}
+  const wx=M.cx-W/2+px,wy=M.cy-H/2+py,k=2**(nz-M.z);
+  M.cx=wx*k-px+W/2;M.cy=wy*k-py+H/2;M.z=nz;M.imgs={};M.el.querySelector(".tl").innerHTML="";drawMap(M);
+}
+function drawMap(M){
+  const el=M.el,W=el.clientWidth,H=el.clientHeight,z=M.z,N=2**z,left=M.cx-W/2,top=M.cy-H/2;
+  const tl=el.querySelector(".tl"),dark=matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches&&document.documentElement.dataset.theme!=="light";
+  const style=dark?"dark_all":"rastertiles/voyager",need={};
+  if(M.fails<6){
+    for(let tx=Math.floor(left/256);tx<=Math.floor((left+W)/256);tx++)for(let ty=Math.floor(top/256);ty<=Math.floor((top+H)/256);ty++){
+      if(ty<0||ty>=N)continue;const k=tx+"/"+ty;need[k]=1;let im=M.imgs[k];
+      if(!im){im=new Image();im.alt="";im.decoding="async";im.onerror=()=>{M.fails++;if(M.fails>=6){el.classList.add("notile");tl.innerHTML=""}};
+        im.src=`https://${"abcd"[(tx+ty+64)%4]}.basemaps.cartocdn.com/${style}/${z}/${((tx%N)+N)%N}/${ty}@2x.png`;M.imgs[k]=im;tl.appendChild(im)}
+      im.style.left=(tx*256-left)+"px";im.style.top=(ty*256-top)+"px";
+    }
+    for(const k in M.imgs)if(!need[k]){M.imgs[k].remove();delete M.imgs[k]}
+  }
+  const xy=co=>[lng2x(co[1],z)-left,lat2y(co[0],z)-top];
+  // 선: 날마다 순서대로 직선
+  const byDay={};M.pts.forEach(x=>(byDay[x.d]=byDay[x.d]||[]).push(x));
+  el.querySelector("svg.rt").innerHTML=Object.entries(byDay).map(([d,a])=>a.length<2?"":`<polyline points="${a.map(x=>xy(x.co).map(v=>v.toFixed(1)).join(",")).join(" ")}" fill="none" stroke="#fff" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" opacity=".85"/><polyline points="${a.map(x=>xy(x.co).map(v=>v.toFixed(1)).join(",")).join(" ")}" fill="none" stroke="${DAYC[d%7]}" stroke-width="3" stroke-dasharray="7 6" stroke-linejoin="round" stroke-linecap="round"/>`).join("");
+  el.querySelector(".pn").innerHTML=M.L.map((x,k)=>{if(!x.co)return"";const [px,py]=xy(x.co);return `<button type="button" class="mpin${M.sel===k?" sel":""}" data-mk="${k}" style="left:${px.toFixed(1)}px;top:${py.toFixed(1)}px;background:${DAYC[x.d%7]}" aria-label="${x.i+1}번 ${esc(x.s.p[0])}">${x.i+1}</button>`}).join("")
+    +(typeof LV!=="undefined"&&LV.gps&&LV.gps.co&&LV.city===M.P.city?(()=>{const [px,py]=xy(LV.gps.co);return `<span class="mpin me" style="left:${px}px;top:${py}px" title="내 위치"></span>`})():"");
+}
+function selMap(M,k,pan){
+  M.sel=k;const old=M.el.querySelector(".minfo");if(old)old.remove();
+  document.querySelectorAll(`#cmap-${M.w}~.mlist li, .mapwrap .mlist li`).forEach(li=>li.classList.toggle("sel",k!=null&&+li.dataset.mk===k));
+  if(k!=null){const x=M.L[k],P=M.P;
+    if(pan&&x.co){M.cx=lng2x(x.co[1],M.z);M.cy=lat2y(x.co[0],M.z)+40}
+    M.el.insertAdjacentHTML("beforeend",`<div class="minfo"><span style="color:${DAYC[x.d%7]};font-weight:700;font-size:12.5px">${P.days.length>1?x.d+1+"일차 · ":""}${x.i+1}번째 · ${fmt(x.s.h)} · ${CAT[x.s.cat]||"기타"}</span><b>${esc(x.s.p[0])}</b>${x.s.p[5]?`<span class="small" style="margin:0">${esc(x.s.p[5])}</span>`:""}<span class="r"><a href="${placeURL(x.s.p[0],P.city)}" target="_blank" rel="noopener">${mapApp(P.city)}에서 보기</a>${!x.s.custom?`<a href="${igURL(x.s.p[0])}" target="_blank" rel="noopener" style="color:#c13584">인스타</a>`:""}</span></div>`)}
+  drawMap(M);
+}
+document.addEventListener("click",e=>{
+  const vb=e.target.closest("[data-vm]");
+  if(vb){const t=vb.closest("[data-w]");const w=t&&t.dataset.w;if(!w)return;st.vm[w]=vb.dataset.vm;renderTicket(w,false);const v=t.querySelector(".vmode");if(v){const r=v.getBoundingClientRect();if(r.top<0)v.scrollIntoView({block:"start"})}return}
+  const cm=e.target.closest(".cmap");const wrap=e.target.closest(".mapwrap");if(!wrap)return;
+  const M=Object.values(MAPS).find(m=>wrap.contains(m.el));if(!M)return;
+  const z=e.target.closest("[data-mz]");if(z){zoomMap(M,+z.dataset.mz);return}
+  if(e.target.closest("[data-mfit]")){M.imgs={};M.el.querySelector(".tl").innerHTML="";fitMap(M);selMap(M,null);return}
+  const pin=e.target.closest(".mpin[data-mk]");if(pin){selMap(M,+pin.dataset.mk);return}
+  const li=e.target.closest(".mlist li[data-mk]");if(li&&!li.classList.contains("nogeo")){selMap(M,+li.dataset.mk,true);M.el.scrollIntoView({behavior:"smooth",block:"center"})}
+});
+window.addEventListener("resize",()=>{for(const k in MAPS){const M=MAPS[k];if(document.contains(M.el))drawMap(M)}});
 /* ---------- 바텀시트 ---------- */
 let lastFocus=null;
 function openSheet(id){st.openSheet=id;lastFocus=document.activeElement;$("scrim").hidden=false;$(id).hidden=false;$(id).querySelector(".sclose").focus()}
@@ -2166,9 +2300,10 @@ function renderTicket(w,fresh=true){
   const by=w==="view"&&st.viewItem?`<div class="desc">공유한 사람 · <span data-author="${esc(st.viewItem.author)}">${esc(authorName(st.viewItem.author))}</span></div>`:"";
   t.innerHTML=`<div class="post" style="background:linear-gradient(135deg,${K[1]},${K[2]})"><div class="cc">${K[0]}</div><div class="native">${esc(C.nat)}</div><div class="meta">${meta}</div></div>
     <div class="stub"><div class="code">${rl?rl+" · ":""}${P.len} · No.${P.no}</div><div class="dest">${esc(P.name||P.city)}</div><div class="type">${pr.code}</div><div class="desc">${esc(describe(pr))}</div>${by}</div>
-    <div class="perf"></div>${P.days.length>1&&!locked?`<nav class="dtabs" role="tablist" aria-label="일차 선택"><button role="tab" data-dv="all" aria-selected="${dv==="all"}">전체</button>${P.days.map((day,d)=>`<button role="tab" data-dv="${d}" aria-selected="${dv===d}"><b>${d+1}일차</b><small>${P.date?dLabel(P.date,d).replace(/ \(.\)/,m=>m):""}${P.date?" · ":""}${day.filter(s=>!s.custom).length}곳</small></button>`).join("")}</nav>`:""}${w!=="view"&&P.shortDay!=null&&P.shortDay!==undefined?`<p class="shortnote">이 앱에 등록된 ${esc(P.city)} 장소는 ${P.pool||CITY[P.city].p.length}곳이라 ${P.shortDay+1}일차부터 '자유 시간'이 생겼어요. 자유 시간 칸의 <b>장소로 채우기</b>를 누르면 아직 안 간 곳이나 지도에서 찾은 곳으로 채울 수 있어요.</p>`:""}${days}${lockHTML}<div class="perf"></div>${save}
+    <div class="perf"></div>${P.days.length>1&&!locked?`<nav class="dtabs" role="tablist" aria-label="일차 선택"><button role="tab" data-dv="all" aria-selected="${dv==="all"}">전체</button>${P.days.map((day,d)=>`<button role="tab" data-dv="${d}" aria-selected="${dv===d}"><b>${d+1}일차</b><small>${P.date?dLabel(P.date,d).replace(/ \(.\)/,m=>m):""}${P.date?" · ":""}${day.filter(s=>!s.custom).length}곳</small></button>`).join("")}</nav>`:""}${w!=="view"&&P.shortDay!=null&&P.shortDay!==undefined?`<p class="shortnote">이 앱에 등록된 ${esc(P.city)} 장소는 ${P.pool||CITY[P.city].p.length}곳이라 ${P.shortDay+1}일차부터 '자유 시간'이 생겼어요. 자유 시간 칸의 <b>장소로 채우기</b>를 누르면 아직 안 간 곳이나 지도에서 찾은 곳으로 채울 수 있어요.</p>`:""}${locked?"":vmodeHTML(w)}${!locked&&vmOf(w)==="map"?mapPanelHTML(w,P,dv):days}${lockHTML}<div class="perf"></div>${save}
     ${ed||locked?"":`<div class="tips"><div class="label">${pr.code} 맞춤 팁</div><ul>${tips||"<li><b>·</b><span>균형 잡힌 코스예요.</span></li>"}</ul></div>`}`;
   if(fresh){t.classList.remove("fresh");void t.offsetWidth;t.classList.add("fresh")}
+  if(!locked&&vmOf(w)==="map")mountMap(w,P,dv);
 }
 ["recTicket","planTicket","viewTicket"].forEach(id=>{
   const el=$(id),w=el.dataset.w;
@@ -3021,6 +3156,8 @@ for(const [c,nm,k,e,n,f,d,la,lo,inf] of ADDP2){if(!CITY[c]||CITY[c].p.some(x=>x[
 // 인스타그램에서 많이 찍히는 곳 (2026년 10월 기준으로 골랐어요. 자동 갱신은 아니에요)
 const ADDP3=[["서울", "별마당 도서관", "s", 0.6, 0.3, 0.5, "코엑스몰 한가운데 13m 높이 책장이 있는 무료 도서관이에요. 위층 난간에서 내려다보며 찍으면 예뻐요.", 37.51187, 127.05911, null], ["서울", "서울식물원", "s", -0.3, 0.3, 0.8, "지름 100m 온실에 열대·지중해 식물이 가득해요. 비 오는 날에도 좋아요.", 37.57107, 126.83466, null], ["서울", "용리단길", "f", 0.6, 0.7, 0.3, "신용산역 뒷골목에 베트남·일식·와인바 같은 작은 식당이 모여 있어요. 저녁엔 웨이팅이 있어요.", 37.53003, 126.96768, null], ["서울", "송리단길·석촌호수", "c", 0.4, 0.5, 0.6, "석촌호수 산책로 옆 골목에 카페와 디저트 가게가 이어져요. 봄 벚꽃이 유명해요.", 37.51009, 127.10408, null], ["서울", "노들섬 노을", "n", -0.1, 0.5, 0.9, "한강 한가운데 섬 잔디밭에서 63빌딩 쪽으로 지는 노을을 봐요.", 37.51756, 126.95857, null], ["서울", "해방촌 신흥시장", "n", 0.5, 0.8, 0.4, "옛 시장 지붕 아래 작은 바와 식당이 모여 있고, 루프탑에서 남산타워가 보여요.", 37.54515, 126.98498, null], ["부산", "아난티 코브 이터널저니", "s", -0.2, 0.6, 0.6, "기장 바닷가 리조트 안 대형 서점이에요. 책 구경하고 바로 옆 해변 산책로를 걸어요.", 35.19783, 129.22832, null], ["부산", "스카이라인 루지 부산", "s", 0.8, 0.3, 0.2, "오시리아 언덕을 썰매 카트로 내려와요. 3회권 이상이 재미있어요.", 35.19413, 129.21913, null], ["부산", "롯데월드 어드벤처 부산", "s", 0.9, 0.1, 0.2, "동화 컨셉 야외 테마파크예요. 퍼레이드 시간에 맞춰 가 보세요.", 35.19728, 129.21429, null], ["부산", "광안리 드론라이트쇼", "n", 0.7, 0.6, 0.8, "토요일 밤 광안대교 앞 하늘에 드론 수백 대가 그림을 그려요. 운영 일정은 미리 확인하세요.", 35.15089, 129.11678, null], ["부산", "부산 엑스더스카이", "n", 0.2, 0.2, 0.8, "해운대 엘시티 100층 전망대예요. 해 질 무렵 가면 낮과 야경을 다 봐요.", 35.16067, 129.16869, null], ["제주", "9.81파크", "s", 0.9, 0.5, 0, "중력으로만 달리는 무동력 카트 레이싱이에요. 기록이 앱으로 나와요.", 33.39002, 126.36435, null], ["제주", "스누피가든", "s", 0.3, 0.3, 0.7, "스누피 만화 장면을 정원과 숲길로 꾸몄어요. 아이·친구랑 사진 찍기 좋아요.", 33.44474, 126.7797, null], ["제주", "한담해안산책로", "s", -0.1, 0.2, 0.9, "애월 곽지까지 이어지는 바닷가 산책길이에요. 노을 시간에 가장 예뻐요.", 33.4627, 126.3105, null], ["제주", "더클리프", "n", 0.9, 0.5, 0.6, "중문 절벽 위 비치 라운지 바예요. 해 질 녘 음악과 칵테일이 유명해요.", 33.24401, 126.41551, null], ["강릉", "BTS 버스정류장", "s", 0.3, 0.2, 0.5, "주문진 향호해변에 앨범 표지를 찍은 버스정류장 세트가 있어요. 줄 서서 찍어요.", 37.9124, 128.8225, null], ["강릉", "정동진 레일바이크", "s", 0.6, 0.2, 0.7, "바다를 따라 달리는 레일바이크예요. 주말엔 예약을 권해요.", 37.69183, 129.03251, null], ["경주", "경주동궁원", "s", -0.2, 0.3, 0.7, "동궁과 월지를 본뜬 대형 유리온실 식물원이에요.", 35.84985, 129.26244, null], ["전주", "남부시장 청년몰", "c", 0.5, 0.8, 0.3, "남부시장 2층에 청년들이 연 작은 가게와 식당이 모여 있어요. 주말 야시장과 함께 가요.", 35.81219, 127.14745, null], ["여수", "여수 예술랜드", "s", 0.4, 0.6, 0.7, "바다 위로 뻗은 거대한 손 조형물 '마이다스의 손'이 유명한 리조트 전망대예요.", 34.69571, 127.77762, null], ["도쿄", "팀랩 보더리스", "s", 0.3, 1, 0.6, "아자부다이 힐스의 몰입형 디지털 아트 전시예요. 작품이 방을 넘나들어요. 예약 필수.", 35.66084, 139.74065, null], ["도쿄", "미야시타 파크", "s", 0.8, 0.6, 0.2, "시부야 옥상 공원과 쇼핑몰이에요. 아래층엔 시부야 요코초 먹자골목이 있어요.", 35.66196, 139.70193, null], ["도쿄", "시부야 파르코", "s", 0.8, 0.7, 0, "닌텐도 도쿄와 포켓몬 센터, 캐릭터 숍이 모인 쇼핑몰이에요.", 35.66193, 139.69875, null], ["도쿄", "오모테산도 캣스트리트", "s", 0.5, 0.6, 0.3, "하라주쿠와 시부야를 잇는 뒷골목에 편집숍과 카페가 이어져요.", 35.66698, 139.70631, null], ["도쿄", "도쿄 디즈니씨", "s", 0.9, 0.4, 0.6, "바다 테마의 디즈니 파크예요. 하루를 통째로 잡고 가요.", 35.62765, 139.88865, null], ["오사카", "그랑 그린 오사카", "s", 0.2, 0.6, 0.6, "우메다역 바로 앞 새 도심 공원이에요. 잔디밭에서 쉬어 가요.", 34.70431, 135.49346, null], ["오사카", "아메리카무라", "s", 0.9, 0.7, 0, "신사이바시 서쪽 빈티지숍·스트리트 패션 골목이에요. 삼각공원이 중심이에요.", 34.67209, 135.49795, null], ["오사카", "태양의 탑", "s", -0.2, 0.8, 0.4, "만박기념공원에 서 있는 오카모토 다로의 거대한 조형물이에요. 내부 관람은 예약제예요.", 34.80951, 135.5324, null], ["교토", "기모노 포레스트", "s", 0.1, 0.6, 0.8, "아라시야마역 앞 기모노 천을 넣은 기둥 600개 산책길이에요. 밤에 불이 켜져요.", 35.01529, 135.67845, null], ["교토", "호칸지 야사카탑", "s", 0.2, -0.3, 0.8, "골목 끝에 오층탑이 보이는 교토 대표 사진 포인트예요. 이른 아침이 한산해요.", 34.99841, 135.77931, null], ["후쿠오카", "팀랩 포레스트 후쿠오카", "s", 0.5, 1, 0.5, "보스 이조 후쿠오카 안의 디지털 아트 전시예요. 동물을 잡고 그리는 체험이 있어요.", 33.59504, 130.36377, null], ["후쿠오카", "다이묘 골목", "s", 0.7, 0.6, 0.2, "텐진 뒤편 편집숍·빈티지숍·카페 골목이에요.", 33.58919, 130.39485, null], ["후쿠오카", "아임 도넛 나카스", "c", 0.6, 0.4, 0.2, "쫀득한 생도넛으로 줄이 긴 도넛 가게예요. 오픈 시간에 가면 덜 기다려요.", 33.58832, 130.40235, null], ["타이베이", "쑹산문창원구", "s", -0.1, 0.8, 0.4, "옛 담배공장을 고친 문화공간이에요. 전시와 디자인 숍, 연못 산책로가 있어요.", 25.04503, 121.55951, null], ["타이베이", "츠펑제 카페골목", "c", 0.3, 0.8, 0.4, "중산역 뒤 철공소 골목에 카페와 소품숍이 섞여 있어요.", 25.05439, 121.51969, null], ["타이베이", "베이터우 공공도서관", "s", -0.8, 0.6, 0.7, "공원 속 나무로 지은 친환경 도서관이에요. 온천 가는 길에 들러요.", 25.1359, 121.50603, null], ["방콕", "왓 빡남", "s", -0.2, 0.6, 0.6, "천장 유리탑에 우주 같은 불화가 그려진 사원이에요. 옷차림은 어깨·무릎을 가려요.", 13.72167, 100.47043, null], ["방콕", "롱1919", "s", 0.1, 0.8, 0.6, "짜오프라야 강변의 옛 중국 무역 건물을 고친 복합공간이에요.", 13.73434, 100.50758, null], ["다낭", "아시아파크 썬휠", "n", 0.8, 0.2, 0.5, "강변 놀이공원의 대관람차예요. 밤에 타면 다낭 야경이 한눈에 보여요.", 16.0395, 108.2281, null], ["다낭", "스카이36", "n", 0.9, 0.3, 0.5, "노보텔 꼭대기 루프탑 바예요. 늦은 밤까지 음악과 야경이 있어요.", 16.0775, 108.2235, null], ["다낭", "껌탄 코코넛 마을", "s", 0.7, 0.6, 0.5, "호이안 근처 코코넛 숲 수로에서 동그란 바구니배를 타요. 뱃사공 묘기가 재미있어요.", 15.88952, 108.36181, null], ["싱가포르", "유니버설 스튜디오 싱가포르", "s", 0.9, 0.3, 0.1, "센토사섬의 영화 테마파크예요. 익스프레스 티켓이 있으면 줄을 줄여요.", 1.2542, 103.82267, null], ["싱가포르", "아트사이언스 뮤지엄", "s", 0.1, 0.9, 0.4, "연꽃 모양 건물의 미디어아트 전시 '퓨처 월드'가 유명해요.", 1.28614, 103.85923, null], ["싱가포르", "세라비 루프탑", "n", 0.9, 0.3, 0.6, "마리나 베이 샌즈 꼭대기 바예요. 입장료 대신 음료를 시키면 전망을 봐요.", 1.28462, 103.86093, null], ["파리", "사랑해 벽", "s", 0.2, 0.4, 0.8, "몽마르트르 공원 안 250개 언어로 '사랑해'를 적은 벽이에요. 한국어도 찾아보세요.", 48.88481, 2.33852, null], ["파리", "갤러리 라파예트 루프탑", "s", 0.5, 0.1, 0.6, "백화점 옥상 전망대가 무료예요. 오페라 가르니에와 에펠탑이 보여요.", 48.87365, 2.33213, null], ["파리", "트로카데로 광장", "n", 0.6, -0.5, 0.9, "에펠탑 정면이 가장 잘 보이는 광장이에요. 정각마다 반짝이는 조명을 기다려요.", 48.86305, 2.28719, null], ["파리", "크레미유 거리", "s", 0, 0.7, 0.7, "파스텔색 집이 늘어선 짧은 골목이에요. 주민이 사니 조용히 찍어요.", 48.84688, 2.37087, null], ["로마", "몰타 기사단 열쇠구멍", "s", -0.3, 0.9, 0.6, "아벤티노 언덕 대문 열쇠구멍으로 성 베드로 대성당 돔이 딱 보여요.", 41.88293, 12.47841, null], ["로마", "자니콜로 언덕 전망대", "n", -0.4, 0.3, 0.9, "로마 시내 지붕과 돔이 한눈에 들어오는 언덕이에요. 해 질 녘 추천.", 41.89157, 12.46116, null], ["런던", "닐스 야드", "s", 0.3, 0.6, 0.6, "코벤트 가든 뒤 알록달록 칠한 작은 안뜰이에요.", 51.51443, -0.12639, null], ["런던", "리든홀 마켓", "s", 0.3, 0.2, 0.7, "빅토리아풍 지붕이 아름다운 실내 시장이에요. 해리포터 촬영지예요.", 51.51273, -0.0834, null], ["런던", "킹스크로스 9와 3/4 승강장", "s", 0.6, 0.2, 0.4, "벽에 반쯤 박힌 카트와 기념품 숍이 있어요. 줄 서서 사진을 찍어요.", 51.53205, -0.12394, null], ["바르셀로나", "키스 벽화", "s", 0.2, 0.6, 0.7, "작은 사진 타일 수천 장으로 키스 장면을 만든 고딕 지구 벽화예요.", 41.38517, 2.17481, null], ["바르셀로나", "바르셀로나 개선문", "s", 0.4, -0.2, 0.6, "붉은 벽돌 개선문과 야자수 산책로가 시우타데야 공원까지 이어져요.", 41.39104, 2.18064, null], ["뉴욕", "리틀 아일랜드", "s", 0.3, 0.8, 0.7, "허드슨강 위 튤립 모양 기둥에 만든 공중 공원이에요.", 40.742, -74.01061, null], ["뉴욕", "에지 전망대", "n", 0.5, 0.4, 0.7, "허드슨 야드 100층 유리 바닥 야외 전망대예요.", 40.75391, -74.00195, null], ["뉴욕", "도미니크 앙셀 베이커리", "c", 0.4, 0.6, 0.2, "크로넛을 처음 만든 소호 베이커리예요. 오전에 가야 남아 있어요.", 40.72517, -74.00295, null], ["삿포로", "스스키노 니카 간판", "n", 0.7, 0, 0.5, "스스키노 교차로의 대형 위스키 간판 앞이 삿포로 밤 인증샷 장소예요.", 43.05537, 141.35341, null], ["오키나와", "고우리 하트록", "s", 0.1, 0.4, 0.9, "고우리섬 티누 해변에 하트 모양으로 갈라진 바위가 있어요. 썰물 때 가까이 가요.", 26.71, 128.019, null], ["오키나와", "푸른 동굴 스노클링", "s", 0.8, 0.5, 0.7, "마에다곶 바다 동굴 안이 파랗게 빛나요. 투어로 다녀와요.", 26.44628, 127.77136, null], ["홍콩", "익청빌딩", "s", 0.2, 0.8, 0.4, "영화 트랜스포머에 나온 빽빽한 'ㄷ'자 아파트예요. 주민이 사니 조용히 찍어요.", 22.28403, 114.21233, null], ["홍콩", "초이훙 아파트", "s", 0.2, 0.6, 0.6, "무지개색으로 칠한 공공 아파트 단지예요. 옥상 주차장 농구장이 포토존이에요.", 22.33551, 114.20621, null], ["홍콩", "홍콩 디즈니랜드", "s", 0.9, 0.3, 0.5, "란타우섬 디즈니 파크예요. 밤 불꽃쇼까지 보고 나와요.", 22.31307, 114.04098, null]];
 for(const [c,nm,k,e,n,f,d,la,lo,inf] of ADDP3){if(!CITY[c]||CITY[c].p.some(x=>x[0]===nm))continue;CITY[c].p.push([nm,k,e,n,f,d]);COORD[nm]=[la,lo];if(inf)INFO[nm]=inf}
+const QN3={"팀랩 보더리스": "teamLab Borderless Azabudai Hills", "미야시타 파크": "Miyashita Park", "시부야 파르코": "Shibuya Parco", "오모테산도 캣스트리트": "Cat Street Shibuya", "도쿄 디즈니씨": "Tokyo DisneySea", "그랑 그린 오사카": "Grand Green Osaka", "아메리카무라": "Amerikamura", "태양의 탑": "Tower of the Sun", "기모노 포레스트": "Kimono Forest", "호칸지 야사카탑": "Hokanji Yasaka Pagoda", "팀랩 포레스트 후쿠오카": "BOSS E・ZO FUKUOKA", "다이묘 골목": "Daimyo", "아임 도넛 나카스": "I'm donut Nakasu", "쑹산문창원구": "Songshan Cultural and Creative Park", "츠펑제 카페골목": "Chifeng Street", "베이터우 공공도서관": "Beitou Library", "왓 빡남": "Wat Paknam", "롱1919": "Lhong 1919", "아시아파크 썬휠": "Sun World Asia Park Danang", "스카이36": "Sky36 Danang", "껌탄 코코넛 마을": "Cam Thanh Coconut Village", "유니버설 스튜디오 싱가포르": "Universal Studios Singapore", "아트사이언스 뮤지엄": "ArtScience Museum", "세라비 루프탑": "CÉ LA VI Singapore", "사랑해 벽": "Le Mur des je t'aime", "갤러리 라파예트 루프탑": "Galeries Lafayette Haussmann", "트로카데로 광장": "Trocadéro", "크레미유 거리": "Rue Crémieux", "몰타 기사단 열쇠구멍": "Buco della Serratura", "자니콜로 언덕 전망대": "Gianicolo", "닐스 야드": "Neal's Yard", "리든홀 마켓": "Leadenhall Market", "킹스크로스 9와 3/4 승강장": "Platform 9 3/4 King's Cross", "키스 벽화": "El món neix en cada besada", "바르셀로나 개선문": "Arc de Triomf", "리틀 아일랜드": "Little Island", "에지 전망대": "Edge NYC", "도미니크 앙셀 베이커리": "Dominique Ansel Bakery", "스스키노 니카 간판": "Susukino Nikka sign", "고우리 하트록": "Heart Rock Kouri Island", "푸른 동굴 스노클링": "Blue Cave Cape Maeda", "익청빌딩": "Yick Cheong Building", "초이훙 아파트": "Choi Hung Estate", "홍콩 디즈니랜드": "Hong Kong Disneyland"};
+for(const k in QN3)if(!QN[k])QN[k]=QN3[k];
 var HOT=new Set(["성수동 팝업 거리", "익선동 한옥골목", "연남동 카페거리", "어니언 안국", "대림창고", "더현대 서울", "동대문디자인플라자", "세빛섬", "흰여울문화마을", "감천문화마을", "해운대 블루라인파크", "청사포 다릿돌전망대", "전포카페거리", "카페 피아크", "웨이브온 커피", "해리단길", "아르떼뮤지엄 제주", "카페 델문도", "몽상드애월", "새빌", "월정리 해변 카페", "아르떼뮤지엄 강릉", "하슬라아트월드", "툇마루 커피", "황리단길", "황리단길 십원빵", "동궁과 월지", "월정교", "자만벽화마을", "객리단길 카페거리", "모이핀 오션", "돌산 오션뷰 카페거리", "여수 낭만포차", "팀랩 플래닛", "시모키타자와", "시부야 스카이", "나카메구로 강변 카페", "하라주쿠 다케시타 거리", "나카자키초 골목 카페", "호리에 카페 거리", "아라시야마 대나무숲", "후시미 이나리 신사", "니넨자카·산넨자카", "% 아라비카 히가시야마", "화산1914 문화창의원구", "지우펀", "스펀 천등 날리기", "아이콘시암", "쩟페어 야시장", "킹파워 마하나콘 스카이워크", "바나힐 골든브릿지", "호이안 소원 등불 배", "가든스 바이 더 베이", "주얼 창이", "하지 레인·캄퐁 글람", "벙커 델 카르멜", "서밋 원 밴더빌트", "베슬", "덤보·브루클린 브리지", "하이라인", "스카이 가든", "노팅힐·포토벨로 마켓", "기찻길 마을", "카페 쿠루쿠마", "아메리칸 빌리지", "고우리 대교", "우미카지 테라스", "PMQ", "몽콕 여인가", "레인포레스트 카페", "사천바다케이블카", "실안해안도로 낙조", "별마당 도서관", "서울식물원", "용리단길", "송리단길·석촌호수", "노들섬 노을", "해방촌 신흥시장", "아난티 코브 이터널저니", "스카이라인 루지 부산", "롯데월드 어드벤처 부산", "광안리 드론라이트쇼", "부산 엑스더스카이", "9.81파크", "스누피가든", "한담해안산책로", "더클리프", "BTS 버스정류장", "정동진 레일바이크", "경주동궁원", "남부시장 청년몰", "여수 예술랜드", "팀랩 보더리스", "미야시타 파크", "시부야 파르코", "오모테산도 캣스트리트", "도쿄 디즈니씨", "그랑 그린 오사카", "아메리카무라", "태양의 탑", "기모노 포레스트", "호칸지 야사카탑", "팀랩 포레스트 후쿠오카", "다이묘 골목", "아임 도넛 나카스", "쑹산문창원구", "츠펑제 카페골목", "베이터우 공공도서관", "왓 빡남", "롱1919", "아시아파크 썬휠", "스카이36", "껌탄 코코넛 마을", "유니버설 스튜디오 싱가포르", "아트사이언스 뮤지엄", "세라비 루프탑", "사랑해 벽", "갤러리 라파예트 루프탑", "트로카데로 광장", "크레미유 거리", "몰타 기사단 열쇠구멍", "자니콜로 언덕 전망대", "닐스 야드", "리든홀 마켓", "킹스크로스 9와 3/4 승강장", "키스 벽화", "바르셀로나 개선문", "리틀 아일랜드", "에지 전망대", "도미니크 앙셀 베이커리", "스스키노 니카 간판", "고우리 하트록", "푸른 동굴 스노클링", "익청빌딩", "초이훙 아파트", "홍콩 디즈니랜드"]);
 </script>
 <script>
