@@ -2054,7 +2054,7 @@ document.addEventListener("click",async e=>{
   }catch(err){toast("위치를 찾지 못해서 카카오맵 검색으로 열어요")}
   a.textContent=old;a.style.opacity="";
   if(win&&!win.closed){try{win.location.href=url}catch(_){win.close();location.href=url}}
-  else if(standalone){const t=document.createElement("a");t.href=url;t.target="_blank";t.rel="noopener";document.body.appendChild(t);t.click();t.remove()}
+  // 설치한 앱에서 바깥 주소로 이동하면 앱은 그대로 두고 카카오맵(또는 앱 안 브라우저)이 열려요
   else location.href=url;
 });
 /* ---------- 바텀시트 ---------- */
