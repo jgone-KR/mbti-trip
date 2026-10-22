@@ -2039,7 +2039,9 @@ document.addEventListener("click",async e=>{
   const a=e.target.closest("a[data-kf]");if(!a||!kfOn())return;
   e.preventDefault();
   const city=decodeURIComponent(a.dataset.kf),mode=a.dataset.kfm,F=decodeURIComponent(a.dataset.kff).split("|"),T=decodeURIComponent(a.dataset.kft).split("|");
-  const win=window.open("","_blank");
+  // 홈 화면에 설치한 앱에서는 빈 창을 먼저 띄우면 돌아왔을 때 그 창이 남아요. 그래서 위치를 찾은 뒤 바로 카카오맵으로 넘겨요.
+  const standalone=(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true;
+  const win=standalone?null:window.open("","_blank");
   try{if(win)win.document.write('<meta name="viewport" content="width=device-width"><p style="font:16px system-ui;padding:24px;color:#555">카카오맵에서 위치를 찾는 중이에요…</p>')}catch(_){}
   const old=a.textContent;a.textContent="위치 찾는 중…";a.style.opacity=".6";
   let url=a.getAttribute("href");
@@ -2051,7 +2053,9 @@ document.addEventListener("click",async e=>{
     else toast("카카오맵에서 이 장소를 찾지 못해서 검색으로 열어요");
   }catch(err){toast("위치를 찾지 못해서 카카오맵 검색으로 열어요")}
   a.textContent=old;a.style.opacity="";
-  if(win&&!win.closed)win.location.href=url;else location.href=url;
+  if(win&&!win.closed){try{win.location.href=url}catch(_){win.close();location.href=url}}
+  else if(standalone){const t=document.createElement("a");t.href=url;t.target="_blank";t.rel="noopener";document.body.appendChild(t);t.click();t.remove()}
+  else location.href=url;
 });
 /* ---------- 바텀시트 ---------- */
 let lastFocus=null;
