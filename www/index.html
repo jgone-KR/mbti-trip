@@ -2023,11 +2023,13 @@ window.addEventListener("resize",()=>{for(const k in MAPS){const M=MAPS[k];if(do
 
 /* ---------- 카카오 실시간 위치 찾기 길찾기 ---------- */
 // 위치 확인 전인 국내 장소는 길찾기를 누를 때 서버(place-find)가 카카오에서 좌표를 찾아 줘요. 카카오 정책상 결과는 저장하지 않아요.
-const kfOn=()=>{try{return !!(window.TRIP_BACKEND&&window.TRIP_BACKEND.placeFind&&isTB())}catch(e){return false}};
+const kfOn=()=>!!(window.TRIP_BACKEND&&window.TRIP_BACKEND.placeFind);
 function kfAttr(city,from,to,mode){
   const enc=v=>esc(encodeURIComponent(v||""));
   const pt=x=>x&&x.name?[x.name,isV(x.name)?"v":isPlaceName(x.name)?"q":"-"].join("|"):"";
-  return `data-kf="${enc(city)}" data-kfm="${mode}" data-kff="${enc(pt(from))}" data-kft="${enc(pt(to))}"`;
+  const o=from&&isPlaceName(from.name)?`&origin=${encodeURIComponent(qOf(from.name,city))}`:"";
+  const g=`https://www.google.com/maps/dir/?api=1${o}&destination=${encodeURIComponent(qOf(to.name,city))}&travelmode=transit`;
+  return `data-kf="${enc(city)}" data-kfm="${mode}" data-kff="${enc(pt(from))}" data-kft="${enc(pt(to))}" data-kfg="${esc(g)}"`;
 }
 async function kfResolve(city,name){
   if(isV(name))return {name:kName(name),lat:GEOV[name][0],lng:GEOV[name][1]};
@@ -2050,8 +2052,8 @@ document.addEventListener("click",async e=>{
     if(t){const f=F[1]!=="-"&&F[0]?await kfResolve(city,F[0]).catch(()=>null):null;
       const md={car:"car",transit:"traffic",walk:"walk"}[mode]||"traffic",T2=`${t.name},${t.lat},${t.lng}`;
       url=f?`https://map.kakao.com/link/by/${md}/${f.name},${f.lat},${f.lng}/${T2}`:`https://map.kakao.com/link/to/${T2}`}
-    else toast("카카오맵에서 이 장소를 찾지 못해서 검색으로 열어요");
-  }catch(err){toast("위치를 찾지 못해서 카카오맵 검색으로 열어요")}
+    else{url=a.dataset.kfg||url;toast("카카오맵에서 이 장소를 찾지 못해서 구글 지도로 열어요")}
+  }catch(err){url=a.dataset.kfg||url;toast("위치를 찾지 못해서 구글 지도로 열어요")}
   a.textContent=old;a.style.opacity="";
   if(win&&!win.closed){try{win.location.href=url}catch(_){win.close();location.href=url}}
   // 설치한 앱에서 바깥 주소로 이동하면 앱은 그대로 두고 카카오맵(또는 앱 안 브라우저)이 열려요
