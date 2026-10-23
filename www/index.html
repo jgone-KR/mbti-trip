@@ -982,6 +982,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
   <!-- 추천 기준 -->
   <section class="page" id="pg-how" aria-labelledby="hHow" hidden>
     <div class="subbar"><button class="back" aria-label="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="hHow">추천 기준</h1></div>
+    <p class="small" style="margin:0 0 10px">앱 버전 <b>v31</b> · 2026.10.23</p>
     <button class="linkbtn" type="button" onclick="window.showOnboarding&&window.showOnboarding()" style="margin:0 0 14px">앱 사용법 다시 보기</button>
     <button class="linkbtn" type="button" onclick="window.resetTours&&window.resetTours();toast('화면별 도움말을 다시 켰어요. 각 화면에 들어가면 다시 나와요')" style="margin:0 0 14px">화면별 도움말 다시 켜기</button>
     <div class="howbody">
@@ -1614,6 +1615,12 @@ const ADDP=[["서울", "창덕궁 후원", "s", -0.6, -0.5, 0.6, "가이드와 �
 for(const [c,nm,k,e,n,f,d,la,lo,inf] of ADDP){if(!CITY[c]||CITY[c].p.some(x=>x[0]===nm))continue;CITY[c].p.push([nm,k,e,n,f,d]);COORD[nm]=[la,lo];if(inf)INFO[nm]=inf}
 })();
 const STAY={s:90,f:60,c:45,n:60,x:30};
+// 오래 걸리는 곳(테마파크·섬·투어)은 머무는 시간을 따로 잡아요(분). 하루 종일 걸리는 곳은 여러 날 여행의 가운데 날에만 넣어요.
+const DUR={"하롱베이 당일투어":600,"유니버설 스튜디오 재팬":540,"유니버설 스튜디오 싱가포르":480,"도쿄 디즈니씨":540,"홍콩 디즈니랜드":480,"빈원더스 나트랑":420,"바나힐 골든브릿지":360,"금오도 비렁길":420,
+ "우도":240,"혼문섬 스노클링":240,"푸른 동굴 스노클링":180,"나이트 사파리":180,"담넌사두억 수상시장":180,"야나가와 뱃놀이":180,"롯데월드 어드벤처 부산":300,"경주월드":300,"센토사섬":240,"옹핑 360·천단대불":240,
+ "오키나와 추라우미 수족관":150,"아이리조트 머드온천":150,"루브르 박물관":180,"바티칸 박물관·시스티나":180,"대영박물관":150,"메트로폴리탄 미술관":180,"국립고궁박물원":150,"팀랩 플래닛":120,"팀랩 보더리스":150,"가든스 바이 더 베이":150,"오사카성 공원":120,"사천바다케이블카":120,"여수해상케이블카":90,"아쿠아플라넷 여수":120,"9.81파크":120,"스카이라인 루지 부산":120};
+const FULLDAY=n=>(DUR[n]||0)>=360;
+const stayOf=x=>{const n=x&&x.p&&x.p[0];return n&&DUR[n]?DUR[n]/60:stay(x&&x.cat)};
 function haversine(a,b){const R=6371,r=x=>x*Math.PI/180;const dLa=r(b[0]-a[0]),dLo=r(b[1]-a[1]);const h=Math.sin(dLa/2)**2+Math.cos(r(a[0]))*Math.cos(r(b[0]))*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
 const up5=m=>Math.max(5,Math.ceil(m/5)*5);
 function leg(a,b,city){
@@ -1817,14 +1824,14 @@ function build(){
     const [S,E]=win[d];let slots=day.filter(s=>s.h>=S-.5);if(!slots.length)slots=day.slice(-1);
     const out=[];
     for(const {c,h} of slots){
-      const prev=out[out.length-1],free=pool.filter(p=>!used.has(p[0]));
+      const prev=out[out.length-1],free=pool.filter(p=>!used.has(p[0])&&(!DUR[p[0]]||((!FULLDAY(p[0])||(n>=3&&d>0&&d<n-1&&!out.length))&&h+DUR[p[0]]/60<=E)));
       let cand=pickFrom(free.filter(p=>p[1]===c),prev);
       if(!cand&&c!=="n")cand=pickFrom(free.filter(p=>p[1]!=="n"&&(c==="c"?p[1]!=="f":true)),prev);
       const stop=cand?{cat:cand[1],h,p:cand}:{cat:"x",h,p:FREE.slice(),custom:true,free:true};
       if(!cand){if(shortDay===null)shortDay=d;if(out.length&&out[out.length-1].custom)continue}
-      const arr=prev?prev.h+stay(prev.cat)+((leg(prev,stop,st.city)||{min:20}).min)/60:S;
+      const arr=prev?prev.h+stayOf(prev)+((leg(prev,stop,st.city)||{min:20}).min)/60:S;
       stop.h=r10(Math.max(h,arr));
-      if(out.length&&stop.h+stay(stop.cat)>E+.01)break;
+      if(out.length&&stop.h+stayOf(stop)>E+.01)break;
       if(cand)used.add(cand[0]);out.push(stop);
     }
     return out;
@@ -1838,7 +1845,7 @@ function ensureWin(P){
 }
 function autoFit(w,d){
   const P=planOf(w);ensureWin(P);const day=P.days[d],S=P.win[d][0];
-  day.forEach((s,i)=>{if(i===0){s.h=r10(S);return}const p=day[i-1];s.h=r10(p.h+stay(p.cat)+((leg(p,s,P.city)||{min:20}).min)/60)});
+  day.forEach((s,i)=>{if(i===0){s.h=r10(S);return}const p=day[i-1];s.h=r10(p.h+stayOf(p)+((leg(p,s,P.city)||{min:20}).min)/60)});
   st.dirty=true;renderTicket(w,false);toast("첫 일정 시간과 이동 시간에 맞춰 시간을 다시 계산했어요.");
 }
 const LEGICON={walk:'<svg viewBox="0 0 24 24"><circle cx="13" cy="4.5" r="1.8"/><path d="M10 21l2-6 3 3v3M9 11l3-3 3 2 2 3M12 8l-1 5"/></svg>',
@@ -1850,12 +1857,12 @@ function legHTML(a,b,city,i){
   const links=routeLinks(city,{name:a.p[0],co:a.custom?null:o},{name:b.p[0],co:b.custom?null:t2},L,`${b.p[0]}까지 길찾기`);
   const route=`<span class="lroute"><b>${i+1}</b> ${esc(a.p[0])} <span class="arr">→</span> <b>${i+2}</b> ${esc(b.p[0])}</span>`;
   if(!L)return `<li class="leg"><div class="rail"></div><div class="lcard">${route}<span class="lm">직접 넣은 장소라 이동 시간은 길찾기에서 확인하세요</span>${links}</div></li>`;
-  const avail=(b.h-(a.h+stay(a.cat)))*60;
+  const avail=(b.h-(a.h+stayOf(a)))*60;
   const warn=L.min>avail+4?`<span class="warn">${fmtDur(L.min-Math.max(0,avail))} 빠듯해요</span>`:"";
   return `<li class="leg"><div class="rail"><span class="licon">${LEGICON[L.kind]}</span></div><div class="lcard">${route}<span class="lm"><b>${L.mode}</b> 약 ${fmtDur(L.min)} · ${L.km<1?Math.round(L.km*100)*10+"m":L.km.toFixed(1)+"km"}${warn?" · "+warn:""}</span>${links}</div></li>`;
 }
 function endHTML(day,E){
-  const last=day[day.length-1],fin=last.h+stay(last.cat),diff=(E-fin)*60;
+  const last=day[day.length-1],fin=last.h+stayOf(last),diff=(E-fin)*60;
   return `<div class="win end"><span>일정 끝 <b>${fmt(fin)}</b></span><span>마무리 목표 <b>${fmt(E)}</b></span><span class="${diff<0?"warn":"okay"}">${diff>=0?"여유 "+fmtDur(diff):"마무리 목표보다 "+fmtDur(-diff)+" 늦어요"}</span></div>`;
 }
 const recStale=()=>!st.rec||st.rec.dep!==st.dep||st.rec.ret!==st.ret||st.rec.sig!==sig(profile())||st.rec.city!==st.city||st.rec.len!==st.len||st.rec.date!==st.date;
@@ -1884,7 +1891,10 @@ function go(p,opts={}){
   document.querySelectorAll(".tabbar button").forEach(b=>{if(b.dataset.go===p)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
   if(p==="home")renderHome();
   if(p==="test")renderTest();
-  if(p==="rec"){if(recStale()){st.rec=build();renderTicket("rec",false)}renderRecSum()}
+  if(p==="rec"){if(recStale()){st.rec=build();renderTicket("rec",false)}
+    // 화면에 그려진 코스와 지금 코스가 다르면(다른 화면에서 코스가 바뀐 경우) 다시 그려요
+    else if(st.rec&&$("recTicket").dataset.no!==String(st.rec.no)+"|"+st.rec.city)renderTicket("rec",false);
+    renderRecSum()}
   if(p==="plan")renderPlan();
   if(p==="saved")renderSaved();
   if(p==="cities")renderCities();
@@ -2224,7 +2234,7 @@ JSON으로만 답해:
     const days=base.days.map((d,i)=>{const names=(out.days[i]||[]).filter(x=>typeof x==="string"&&all.has(x)&&!used.has(x));names.forEach(x=>used.add(x));
       return names.length?names.slice(0,6).map(x=>({cat:all.get(x)[1],h:0,p:all.get(x)})):d.map(s=>Object.assign({},s))});
     const P=Object.assign({},base,{days,req,aiMsg:String(out.message||"").slice(0,300),aiMissing:String(out.missing||"").slice(0,160),aiHint:String(out.searchHint||"").slice(0,40),no:Math.floor(Math.random()*9000)+1000});
-    ensureWin(P);P.days.forEach((day,d)=>{const S=P.win[d][0];let food=0;day.forEach((s,i)=>{let t=i===0?S:(()=>{const q=day[i-1];return q.h+stay(q.cat)+((leg(q,s,P.city)||{min:20}).min)/60})();
+    ensureWin(P);P.days.forEach((day,d)=>{const S=P.win[d][0];let food=0;day.forEach((s,i)=>{let t=i===0?S:(()=>{const q=day[i-1];return q.h+stayOf(q)+((leg(q,s,P.city)||{min:20}).min)/60})();
       if(s.cat==="f"){food++;t=Math.max(t,food===1?(S<11.5?11.5:t):17.5)}if(s.cat==="n")t=Math.max(t,18.5);s.h=r10(t)})});
     st.rec=P;renderTicket("rec",true);renderRecSum();reqBanner("ok",P);
   }catch(e){reqBanner("fail",e&&e.msg?e.msg:e&&e.code==="rate_limited"?`오늘 AI ${AIU.limit}회를 다 써서`:e&&e.code==="busy"?"AI가 잠시 바빠서":"AI 연결이 안 돼서")}
@@ -2365,7 +2375,8 @@ function stopHTML(w,s,d,i,last){
   if(fr&&w!=="view"){acts=(ed?`<button data-act="up" data-d="${d}" data-i="${i}" ${i===0?"disabled":""}>위로</button><button data-act="down" data-d="${d}" data-i="${i}" ${i===last?"disabled":""}>아래로</button><button class="del" data-act="del" data-d="${d}" data-i="${i}">빼기</button>`:"")+`<button class="fillbtn" data-act="other" data-d="${d}" data-i="${i}">장소로 채우기 ›</button>`}
   else if(fr)acts="";
   const hotTag=!fr&&!custom&&typeof HOT!=="undefined"&&HOT.has(s.p[0])?`<span class="hotw"><b>#</b>인스타 핫플</span>`:"";
-  const why=fr?`<span>빈 시간</span>`:custom?`<span>직접 추가</span>`:hotTag+(r.length?r.map(ch=>ch.startsWith("AGE:")?`<span class="agew"><b>${esc(AGES[ch.slice(4)]?AGES[ch.slice(4)].short:"")}</b>취향</span>`:`<span><b>${ch}</b>${WHY[ch]}</span>`).join(""):hotTag?"":`<span>시간대 균형으로 넣은 곳</span>`);
+  const durTag=!fr&&!custom&&DUR[s.p[0]]?`<span><b>⏱</b>${FULLDAY(s.p[0])?"하루 종일":"약 "+fmtDur(DUR[s.p[0]])} 걸려요</span>`:"";
+  const why=fr?`<span>빈 시간</span>`:custom?`<span>직접 추가</span>`:durTag+hotTag+(r.length?r.map(ch=>ch.startsWith("AGE:")?`<span class="agew"><b>${esc(AGES[ch.slice(4)]?AGES[ch.slice(4)].short:"")}</b>취향</span>`:`<span><b>${ch}</b>${WHY[ch]}</span>`).join(""):hotTag||durTag?"":`<span>시간대 균형으로 넣은 곳</span>`);
   return `<li class="stop${ed?" ed":""}${custom?" free":""}"><div class="rail"><span class="num" aria-hidden="true">${i+1}</span></div>
     <div class="scard"><div class="shead"><span class="time ${!ed&&lz?"loose":""}">${time}</span><span class="catchip c-${s.cat}">${CAT[s.cat]||"기타"}</span>${fit===null?"":`<span class="fit">궁합 ${fit}%</span>`}</div>
     ${!custom&&(s.cat==="s"||s.cat==="n")?`<span class="sphoto" data-ph="${esc(s.p[0])}" data-city="${esc(P.city)}" aria-hidden="true"></span>`:""}<span class="name"><span class="sr">${i+1}번째 </span>${esc(s.p[0])}</span><span class="note">${esc(s.p[5])}</span>${custom?"":infoHTML(s.p[0],P.city)}
@@ -2399,6 +2410,7 @@ function renderTicket(w,fresh=true){
       ${P.id?`<small>저장된 플랜을 고치고 있어요. 덮어쓰기를 누르면 반영돼요.</small>`:""}</div>`:"";
   const rl=rangeLabel(P.date,P.len);
   const t=$(w==="rec"?"recTicket":w==="view"?"viewTicket":"planTicket");
+  t.dataset.no=String(P.no)+"|"+P.city;
   const lockHTML=locked?`<div class="lockpanel"><span class="lk">나머지 ${total-shown}곳은 잠겨 있어요</span>
       <span class="small">${VIEW_COST} 크레딧으로 전체 코스를 볼 수 있어요. 지금 보유 ${wallet.credits} 크레딧</span>
       ${wallet.credits>=VIEW_COST?`<button class="gbtn" id="unlockBtn">${VIEW_COST} 크레딧으로 전체 보기</button>`
@@ -2820,7 +2832,7 @@ function legFrom(from,s,move){
 // 지금 시각·위치부터 순서대로 도착 시간 계산
 function flow(stops,move=LV.move,startH){
   let t=startH!=null?startH:nowH(),from=locCoord(),fromName=locLabel();
-  return stops.map(s=>{const L=legFrom(from,s,move);t+=(L?L.min:20)/60;const reach=t,arr=s.h&&s.h>reach?s.h:reach;t=arr+stay(s.cat);const o=fromName;from=coordOf(s)||from;fromName=s.p[0];return{s,L,arr,reach,wait:arr-reach,end:t,from:o}});
+  return stops.map(s=>{const L=legFrom(from,s,move);t+=(L?L.min:20)/60;const reach=t,arr=s.h&&s.h>reach?s.h:reach;t=arr+stayOf(s);const o=fromName;from=coordOf(s)||from;fromName=s.p[0];return{s,L,arr,reach,wait:arr-reach,end:t,from:o}});
 }
 function candidates(){
   const used=new Set(LV.stops.map(s=>s.p[0]).concat(LV.visited)),pr=profile(),here=locCoord();
@@ -2971,7 +2983,7 @@ function loadLiveFrom(src){
 }
 function setLiveDay(d){
   const P=LV.plan;if(!P)return;LV.day=d;const all=clone(P.days[d]||[]);
-  if(LV.onTrip&&d===LV.todayIdx&&LV.timeMode==="real"){const now=nowH();LV.missed=all.filter(x=>x.h&&x.h+stay(x.cat)<=now);LV.stops=all.filter(x=>!(x.h&&x.h+stay(x.cat)<=now))}
+  if(LV.onTrip&&d===LV.todayIdx&&LV.timeMode==="real"){const now=nowH();LV.missed=all.filter(x=>x.h&&x.h+stayOf(x)<=now);LV.stops=all.filter(x=>!(x.h&&x.h+stayOf(x)<=now))}
   else{LV.missed=[];LV.stops=all}
 }
 function liveSources(){
@@ -3078,6 +3090,8 @@ async function hotelSearch(q){
   const box=$("lvHotelRes"),b=baseOf(LV.city);box.innerHTML=`<p class="lhelp">찾는 중…</p>`;
   try{const r=await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=6&lat=${b[0]}&lon=${b[1]}&location_bias_scale=0.2`);const j=await r.json();
     const list=(j.features||[]).map(f=>{const pr=f.properties||{},c=f.geometry&&f.geometry.coordinates;if(!c)return null;const co=[c[1],c[0]];const addr=[pr.city||pr.county,pr.district||pr.locality,pr.street,pr.housenumber].filter(Boolean).join(" ");return{name:pr.name||[pr.street,pr.housenumber].filter(Boolean).join(" ")||q,addr,co,km:haversine(co,b)}}).filter(x=>x&&x.km<60).slice(0,4);
+    // 다른 도시의 같은 이름 숙소를 고르지 않게, 여행지에서 80km 넘게 떨어진 결과는 빼고 가까운 순으로 보여 줘요
+    list.splice(0,list.length,...list.filter(x=>x&&x.km<=80).sort((a,b)=>a.km-b.km));
     LV.hotelRes=list;
     box.innerHTML=list.length?`<ul class="hres">${list.map((x,i)=>`<li><span><b>${esc(x.name)}</b><small>${esc(x.addr||"")} · 시내에서 ${x.km<1?Math.round(x.km*1000)+"m":x.km.toFixed(1)+"km"}</small></span><button type="button" data-hpick="${i}">여기로</button></li>`).join("")}</ul>`
       :`<p class="lhelp">찾지 못했어요. 숙소 이름을 조금 바꿔 보거나, 숙소에 도착해서 <b>지금 위치를 숙소로</b>를 눌러 주세요.</p>`}
@@ -3275,6 +3289,9 @@ const REMOVED=new Set(["신기숲", "앤트러사이트 한림", "몽상드애�
 for(const c in CITY)CITY[c].p=CITY[c].p.filter(x=>!REMOVED.has(x[0]));
 // 국내: 카카오 장소 ID를 찾을 때 쓰는 검색어를 정확하게 고친 곳
 Object.assign(QN,{"송리단길·석촌호수": "석촌호수", "노들섬 노을": "노들섬", "해운대 달맞이길": "문탠로드", "아난티 코브 이터널저니": "이터널저니 아난티", "대릉원 쌈밥거리": "황남동 쌈밥거리", "분황사": "분황사", "사천바다케이블카": "사천바다케이블카", "비토섬 별주부전테마파크": "별주부전테마파크", "광안리 드론라이트쇼": "광안리해수욕장"});
+// 해외: 지도 데이터 대조에서 1.5km 넘게 어긋났던 곳의 위치를 고쳤어요(2026-10-23)
+Object.assign(COORD,{"짜오프라야 디너 크루즈": [13.70416, 100.50271], "피시아이 마린파크": [13.46914, 144.70502], "탈로포포 폭포": [13.3238, 144.73747], "프로아": [13.50135, 144.78947], "메스클라 도스": [13.5167, 144.80767], "아이리조트 머드온천": [12.27175, 109.17479], "락깐": [12.25697, 109.19453]});
+Object.assign(QN,{"지올리티": "Gelateria Giolitti Via degli Uffici del Vicario", "카우키": "Kau Kee Beef Brisket Gough Street", "침차이키": "Tsim Chai Kee Noodle Wellington Street", "모리히코": "Morihico Coffee Main Store", "하마베노 차야": "Hamabe no Chaya Nanjo", "카페 쿠루쿠마": "Cafe Kurukuma Nanjo", "킹 타코스 킨초 본점": "King Tacos Kin Main Store", "에지 전망대": "Edge Hudson Yards observation deck", "타이퀀": "Tai Kwun Centre for Heritage and Arts", "메스클라 도스": "Meskla Dos Tumon"});
 // 해외: 지점이 여러 곳이라 구글 지도가 다른 지점을 고를 수 있던 곳은 지점 이름을 붙였어요
 Object.assign(QN,{"커피 마메야": "Koffee Mameya Omotesando", "가모가와 강변": "Sanjo Ohashi Bridge", "메이크미망고": "Make Me Mango Tha Tien", "로스 타코스 No.1": "Los Tacos No.1 Times Square", "그리말디스 피자": "Grimaldi's Pizzeria Front Street Brooklyn"});
 var HOT=new Set(["성수동 팝업 거리", "익선동 한옥골목", "연남동 카페거리", "어니언 안국", "대림창고", "더현대 서울", "동대문디자인플라자", "세빛섬", "흰여울문화마을", "감천문화마을", "해운대 블루라인파크", "청사포 다릿돌전망대", "전포카페거리", "카페 피아크", "웨이브온 커피", "해리단길", "아르떼뮤지엄 제주", "카페 델문도", "몽상드애월", "새빌", "월정리 해변 카페", "아르떼뮤지엄 강릉", "하슬라아트월드", "툇마루 커피", "황리단길", "황리단길 십원빵", "동궁과 월지", "월정교", "자만벽화마을", "객리단길 카페거리", "모이핀 오션", "돌산 오션뷰 카페거리", "여수 낭만포차", "팀랩 플래닛", "시모키타자와", "시부야 스카이", "나카메구로 강변 카페", "하라주쿠 다케시타 거리", "나카자키초 골목 카페", "호리에 카페 거리", "아라시야마 대나무숲", "후시미 이나리 신사", "니넨자카·산넨자카", "% 아라비카 히가시야마", "화산1914 문화창의원구", "지우펀", "스펀 천등 날리기", "아이콘시암", "쩟페어 야시장", "킹파워 마하나콘 스카이워크", "바나힐 골든브릿지", "호이안 소원 등불 배", "가든스 바이 더 베이", "주얼 창이", "하지 레인·캄퐁 글람", "벙커 델 카르멜", "서밋 원 밴더빌트", "베슬", "덤보·브루클린 브리지", "하이라인", "스카이 가든", "노팅힐·포토벨로 마켓", "기찻길 마을", "카페 쿠루쿠마", "아메리칸 빌리지", "고우리 대교", "우미카지 테라스", "PMQ", "몽콕 여인가", "레인포레스트 카페", "사천바다케이블카", "실안해안도로 낙조", "별마당 도서관", "서울식물원", "용리단길", "송리단길·석촌호수", "노들섬 노을", "해방촌 신흥시장", "아난티 코브 이터널저니", "스카이라인 루지 부산", "롯데월드 어드벤처 부산", "광안리 드론라이트쇼", "부산 엑스더스카이", "9.81파크", "스누피가든", "한담해안산책로", "더클리프", "BTS 버스정류장", "정동진 레일바이크", "경주동궁원", "남부시장 청년몰", "여수 예술랜드", "팀랩 보더리스", "미야시타 파크", "시부야 파르코", "오모테산도 캣스트리트", "도쿄 디즈니씨", "그랑 그린 오사카", "아메리카무라", "태양의 탑", "기모노 포레스트", "호칸지 야사카탑", "팀랩 포레스트 후쿠오카", "다이묘 골목", "아임 도넛 나카스", "쑹산문창원구", "츠펑제 카페골목", "베이터우 공공도서관", "왓 빡남", "롱1919", "아시아파크 썬휠", "스카이36", "껌탄 코코넛 마을", "유니버설 스튜디오 싱가포르", "아트사이언스 뮤지엄", "세라비 루프탑", "사랑해 벽", "갤러리 라파예트 루프탑", "트로카데로 광장", "크레미유 거리", "몰타 기사단 열쇠구멍", "자니콜로 언덕 전망대", "닐스 야드", "리든홀 마켓", "킹스크로스 9와 3/4 승강장", "키스 벽화", "바르셀로나 개선문", "리틀 아일랜드", "에지 전망대", "도미니크 앙셀 베이커리", "스스키노 니카 간판", "고우리 하트록", "푸른 동굴 스노클링", "익청빌딩", "초이훙 아파트", "홍콩 디즈니랜드"]);
