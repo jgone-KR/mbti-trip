@@ -827,6 +827,16 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 .hcol,.smain{display:contents}
 .cmap.dk .tl{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
 .mattr a{color:inherit}
+.nkform{display:flex;flex-direction:column;gap:8px}
+.nkform .nrow input{font-size:17px;font-weight:700}
+.nkform .nrow button{background:var(--chip);color:var(--ink)}
+.nkhelp{font-size:13px;color:var(--muted)}
+.nkhelp.bad{color:var(--stamp);font-weight:700}
+.menick{display:flex;align-items:center;gap:10px;background:var(--paper);border-radius:14px;padding:10px 12px}
+.menick .mi{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--tint);color:var(--accent);font-weight:800;flex:none}
+.menick .mt{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.35}
+.menick .mt small{color:var(--muted);font-size:12.5px}
+.menick button{all:unset;cursor:pointer;padding:7px 12px;border-radius:10px;background:var(--chip);font-weight:700;font-size:14px}
 .lm .approx{display:inline-block;font-size:11.5px;font-weight:700;padding:0 6px;border-radius:999px;background:var(--chip);color:var(--muted);vertical-align:1px}
 .split{display:flex;flex-direction:column;gap:18px}
 .sidelock{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;min-height:260px;background:var(--paper);border-radius:18px;padding:24px;color:var(--muted)}
@@ -1027,9 +1037,9 @@ li.stop.msel .scard{box-shadow:0 0 0 2px var(--accent);border-radius:12px}
   <section class="page" id="pg-saved" aria-labelledby="hSaved" hidden>
     <div class="subbar"><button class="back" aria-label="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="hSaved">내 플랜</h1></div>
     <p class="small" id="where">이 기기에 저장돼요</p>
-    <div class="nick" id="nickBox" hidden><label for="nickInput" class="label" style="margin:0">커뮤니티 닉네임</label><form id="nickForm" class="nrow"><input id="nickInput" maxlength="20" placeholder="공유한 코스에 보일 이름"><button type="submit">저장</button></form></div>
+    <div class="nick" id="nickBox" hidden><label for="nickInput" class="label" style="margin:0">커뮤니티 닉네임</label><form id="nickForm" class="nrow"><input id="nickInput" maxlength="12" placeholder="공유한 코스에 보일 이름"><button type="submit">저장</button></form></div>
     <ul class="plans" id="plans"></ul>
-    <p class="small" style="text-align:center;margin-top:8px">앱 버전 v36 · 2026.10.23</p>
+    <p class="small" style="text-align:center;margin-top:8px">앱 버전 v37 · 2026.10.23</p>
   </section>
 
   <!-- 여행지 둘러보기 -->
@@ -1042,7 +1052,7 @@ li.stop.msel .scard{box-shadow:0 0 0 2px var(--accent);border-radius:12px}
   <!-- 추천 기준 -->
   <section class="page" id="pg-how" aria-labelledby="hHow" hidden>
     <div class="subbar"><button class="back" aria-label="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="hHow">추천 기준</h1></div>
-    <p class="small" style="margin:0 0 10px">앱 버전 <b>v36</b> · 2026.10.23</p>
+    <p class="small" style="margin:0 0 10px">앱 버전 <b>v37</b> · 2026.10.23</p>
     <button class="linkbtn" type="button" onclick="window.showOnboarding&&window.showOnboarding()" style="margin:0 0 14px">앱 사용법 다시 보기</button>
     <button class="linkbtn" type="button" onclick="window.resetTours&&window.resetTours();toast('화면별 도움말을 다시 켰어요. 각 화면에 들어가면 다시 나와요')" style="margin:0 0 14px">화면별 도움말 다시 켜기</button>
     <div class="howbody">
@@ -1134,6 +1144,7 @@ li.stop.msel .scard{box-shadow:0 0 0 2px var(--accent);border-radius:12px}
   <!-- 커뮤니티 -->
   <section class="page" id="pg-community" aria-labelledby="hCom" hidden>
     <div class="subbar"><button class="back" aria-label="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="hCom">커뮤니티 코스</h1></div>
+    <div class="menick" id="meNick" hidden></div>
     <p class="small">다른 여행자들이 공유한 코스예요. 전체 코스를 보려면 코스당 <b>20 크레딧</b>이 필요해요. 한 번 연 코스는 계속 무료로 볼 수 있어요.</p>
     <p class="notice" id="comNotice" hidden></p>
     <div class="chips" id="comFilter"></div>
@@ -1183,6 +1194,18 @@ li.stop.msel .scard{box-shadow:0 0 0 2px var(--accent);border-radius:12px}
 </div></nav>
 
 <div class="scrim" id="scrim" hidden></div>
+
+<div class="sheet" id="nickSheet" role="dialog" aria-modal="true" aria-labelledby="nkTitle" hidden>
+  <div class="in">
+    <div class="sh"><h2 id="nkTitle">닉네임을 정해 주세요</h2><button class="sclose" id="nkLater">나중에</button></div>
+    <p class="small" style="margin:0">커뮤니티에 코스를 공유하면 이 이름으로 보여요. 나중에 <b>커뮤니티</b> 화면에서 바꿀 수 있어요.</p>
+    <form id="nkForm" class="nkform">
+      <div class="nrow"><input id="nkInput" maxlength="12" autocomplete="off" aria-label="닉네임" aria-describedby="nkHelp"><button type="button" id="nkShuffle" aria-label="다른 이름 추천">다른 이름</button></div>
+      <span class="nkhelp" id="nkHelp">2~12자 · 한글, 영문, 숫자, 띄어쓰기</span>
+      <button class="go" type="submit" id="nkSave">이 닉네임으로 시작하기</button>
+    </form>
+  </div>
+</div>
 
 <div class="sheet" id="citySheet" role="dialog" aria-modal="true" aria-labelledby="csTitle" hidden>
   <div class="in">
@@ -2637,7 +2660,7 @@ let saved=[],store={kind:"local"};
 const TB=window.TRIP_BACKEND||null;
 const isTB=()=>store.kind==="tb";
 function previewOf(P){let n=0;const c=clone(P);c.days=c.days.map(d=>d.filter(()=>n++<2));return JSON.stringify(c)}
-const tbErr=e=>{const m=String(e&&e.message||"");return /not_enough_credits/.test(m)?"크레딧이 부족해요.":/already_checked_in/.test(m)?"오늘은 이미 출석했어요.":/Failed to fetch|NetworkError|network/i.test(m)?"인터넷 연결을 확인해 주세요.":"서버 요청이 실패했어요. 잠시 뒤 다시 시도해 주세요."};
+const tbErr=e=>{const m=String(e&&e.message||"");return /nick_taken/.test(m)?"이미 다른 사람이 쓰는 닉네임이에요. 다른 이름으로 해 주세요.":/nick_length/.test(m)?"닉네임은 2~12자로 정해 주세요.":/nick_chars/.test(m)?"닉네임에는 한글, 영문, 숫자, 띄어쓰기만 쓸 수 있어요.":/nick_banned/.test(m)?"쓸 수 없는 단어가 들어 있어요. 다른 이름으로 해 주세요.":/not_enough_credits/.test(m)?"크레딧이 부족해요.":/already_checked_in/.test(m)?"오늘은 이미 출석했어요.":/Failed to fetch|NetworkError|network/i.test(m)?"인터넷 연결을 확인해 주세요.":"서버 요청이 실패했어요. 잠시 뒤 다시 시도해 주세요."};
 async function tbPlans(){
   const rows=await TB.listPlans();
   saved=(rows||[]).map(r=>({id:r.id,name:r.name,city:r.city,len:r.trip_len||"",date:r.trip_date||"",code:r.code||"",stops:r.stops||0,updatedAt:Date.parse(r.updated_at)||0,json:r.json,shared:!!r.shared}));
@@ -2672,6 +2695,7 @@ async function initStore(){
       applyWallet(await TB.wallet());
       peekAi(true);
       await tbCommunity();
+      nickBoot();
     }catch(e){store={kind:"local"};comState="off";refreshCommunity();$("where").textContent="서버에 연결하지 못해서 이 기기에 저장돼요";toast("서버에 연결하지 못했어요. "+tbErr(e))}
     return;
   }
@@ -2714,7 +2738,7 @@ async function savePlan(){
 function renderSaved(){
   renderRecent();
   const el=$("plans");
-  if(isTB())$("nickBox").hidden=false;
+  if(isTB()){$("nickBox").hidden=false;const ni=$("nickInput");if(ni&&document.activeElement!==ni&&myNick)ni.value=myNick}
   if(!saved.length){el.innerHTML=`<li class="noplan">아직 저장한 플랜이 없어요. 코스 짜기에서 코스를 만들고 이름을 붙여 저장하면 여기에 모여요.</li>`;return}
   el.innerHTML=saved.map(r=>{const when=dLabel(r.date)||(()=>{const d=new Date(r.updatedAt||0);return `${d.getMonth()+1}/${d.getDate()} 저장`})();
     return `<li><span class="pn">${esc(r.name)}</span><span class="pm">${esc(r.city)} · ${esc(when)} · ${esc(r.len)} · ${esc(r.code)} · ${r.stops}곳</span>
@@ -2726,7 +2750,40 @@ function openSaved(id){
   catch(err){toast("이 플랜을 열 수 없어요.")}
 }
 if($("nickForm"))$("nickForm").addEventListener("submit",async e=>{e.preventDefault();const v=$("nickInput").value.trim();if(!v){toast("닉네임을 적어 주세요.");return}
-  try{await TB.setNickname(v.slice(0,20));names[myUid]=v;toast("닉네임을 저장했어요. 공유한 코스에 이 이름이 보여요.");tbCommunity().catch(()=>{})}catch(err){toast("닉네임을 저장하지 못했어요. "+tbErr(err))}});
+  const bad=nickBad(v);if(bad){toast(bad);return}
+  try{await TB.setNickname(v);setMyNick(v);toast("닉네임을 저장했어요. 공유한 코스에 이 이름이 보여요.");tbCommunity().catch(()=>{})}catch(err){toast(tbErr(err))}});
+/* ---------- 닉네임: 앱을 켤 때 정하기 ---------- */
+let myNick="";
+const NK_A=["즉흥","느긋한","설레는","방랑하는","산책하는","노을빛","바다빛","반짝이는","여유로운","용감한","배고픈","졸린","신나는","궁금한"],
+      NK_B=["고래","여우","펭귄","수달","고양이","강아지","판다","토끼","다람쥐","거북이","돌고래","부엉이","너구리","햄스터"];
+function nickSuggest(){const r=a=>a[Math.floor(Math.random()*a.length)];return `${r(NK_A)} ${r(NK_B)} ${10+Math.floor(Math.random()*90)}`}
+function nickBad(v){v=String(v||"").trim().replace(/\s+/g," ");if(v.length<2||v.length>12)return "닉네임은 2~12자로 정해 주세요.";if(!/^[가-힣A-Za-z0-9 _]+$/.test(v))return "닉네임에는 한글, 영문, 숫자, 띄어쓰기만 쓸 수 있어요.";return ""}
+function setMyNick(v){myNick=v;if(myUid)names[myUid]=v;renderMeNick();const ni=$("nickInput");if(ni&&document.activeElement!==ni)ni.value=v}
+function renderMeNick(){const el=$("meNick");if(!el)return;if(!isTB()){el.hidden=true;return}el.hidden=false;
+  const n=Object.values(myShared).filter(Boolean).length;
+  el.innerHTML=myNick?`<span class="mi" aria-hidden="true">${esc(myNick.slice(0,1))}</span><span class="mt"><b>${esc(myNick)}</b><small>내 닉네임${n?` · 공유한 코스 ${n}개`:""}</small></span><button type="button" data-nick-edit>바꾸기</button>`
+    :`<span class="mt"><b>아직 닉네임이 없어요</b><small>정해 두면 공유한 코스에 내 이름이 보여요</small></span><button type="button" data-nick-edit>정하기</button>`}
+function openNick(force){const inp=$("nkInput");inp.value=myNick||nickSuggest();$("nkTitle").textContent=myNick?"닉네임 바꾸기":"닉네임을 정해 주세요";
+  $("nkSave").textContent=myNick?"이 닉네임으로 바꾸기":"이 닉네임으로 시작하기";$("nkLater").textContent=myNick?"닫기":"나중에";
+  $("nkHelp").textContent="2~12자 · 한글, 영문, 숫자, 띄어쓰기";$("nkHelp").classList.remove("bad");openSheet("nickSheet");setTimeout(()=>{inp.focus();inp.select()},50)}
+// 앱을 켤 때: 서버에 연결되고 닉네임이 없으면 한 번 물어봐요 (소개 화면·사용법이 끝난 뒤)
+async function nickBoot(){if(!isTB())return;
+  try{myNick=await TB.myNickname()}catch(e){return}
+  setMyNick(myNick);if(myNick)return;
+  let later=false;try{later=sessionStorage.getItem("nickLater")==="1"}catch(e){}
+  if(later)return;
+  const ready=()=>{const onb=document.getElementById("onb"),intro=document.getElementById("intro");return !(onb&&!onb.hidden)&&!(intro&&document.body.contains(intro))&&!st.openSheet&&!document.querySelector(".tourbub")};
+  const tryOpen=()=>{if(myNick)return;if(ready())openNick();else setTimeout(tryOpen,700)};tryOpen()}
+$("nkShuffle").onclick=()=>{const i=$("nkInput");i.value=nickSuggest();i.focus()};
+$("nkInput").addEventListener("input",()=>{const b=nickBad($("nkInput").value),h=$("nkHelp");h.textContent=b&&$("nkInput").value.trim().length>=2?b:"2~12자 · 한글, 영문, 숫자, 띄어쓰기";h.classList.toggle("bad",!!b&&$("nkInput").value.trim().length>=2)});
+$("nkLater").addEventListener("click",()=>{try{sessionStorage.setItem("nickLater","1")}catch(e){}});
+$("nkForm").addEventListener("submit",async e=>{e.preventDefault();const v=$("nkInput").value.trim().replace(/\s+/g," "),bad=nickBad(v),h=$("nkHelp");
+  if(bad){h.textContent=bad;h.classList.add("bad");return}
+  const btn=$("nkSave");btn.disabled=true;
+  try{await TB.setNickname(v);setMyNick(v);closeSheet();toast(`반가워요, ${v}님!`);tbCommunity().catch(()=>{})}
+  catch(err){h.textContent=tbErr(err);h.classList.add("bad")}finally{btn.disabled=false}});
+document.addEventListener("click",e=>{if(e.target.closest("[data-nick-edit]"))openNick(true)});
+
 let armT;
 $("plans").onclick=async e=>{
   const b=e.target.closest("button");if(!b)return;
@@ -2839,14 +2896,14 @@ async function writeShared(map){
 }
 async function toggleShare(id){
   const r=saved.find(x=>x.id===id);if(!r)return;
-  if(isTB()){const on=!myShared[id];try{await TB.setShared(id,on);await tbPlans();await tbCommunity();toast(on?"커뮤니티에 공유했어요. 다른 사람이 크레딧으로 열어볼 수 있어요.":"공유를 그만뒀어요.")}catch(e){toast("공유하지 못했어요. "+tbErr(e))}return}
+  if(isTB()){const on=!myShared[id];if(on&&!myNick){toast("공유하기 전에 닉네임을 먼저 정해 주세요.");openNick();return}try{await TB.setShared(id,on);await tbPlans();await tbCommunity();toast(on?"커뮤니티에 공유했어요. 다른 사람이 크레딧으로 열어볼 수 있어요.":"공유를 그만뒀어요.")}catch(e){toast("공유하지 못했어요. "+tbErr(e))}return}
   const m=Object.assign({},myShared);const on=!m[id];
   if(on)m[id]=shareEntry(r);else delete m[id];
   try{await writeShared(m);renderSaved();toast(on?"커뮤니티에 공유했어요. 다른 사람이 크레딧으로 열어볼 수 있어요.":"공유를 그만뒀어요.")}
   catch(e){toast(e&&e.code==="invalid_argument"?"이 링크에서는 공유할 권한이 없어요.":e&&e.code==="quota_exceeded"?"공유 공간이 가득 찼어요. 공유 중인 코스를 줄여 주세요.":"공유하지 못했어요. 잠시 뒤 다시 시도해 주세요.")}
 }
 const similar=code=>{const me=profile().code;let n=0;for(let i=0;i<4;i++)if(code[i]&&code[i]!=="X"&&code[i]===me[i])n++;return n};
-function renderCommunity(){
+function renderCommunity(){renderMeNick();
   const note=$("comNotice");
   note.hidden=comState==="on";
   if(comState==="loading")note.textContent="공유된 코스를 불러오는 중이에요.";
@@ -3528,7 +3585,7 @@ function tourStart(key,force){
   const steps=(TOURS[key]||[]).filter(s=>visEl(s[0]));if(!steps.length)return;
   if(!force&&tSeen()[key])return;
   const onb=document.getElementById("onb"),intro=document.getElementById("intro");
-  if((onb&&!onb.hidden)||(intro&&document.body.contains(intro))){setTimeout(()=>tourStart(key,force),700);return}
+  if((onb&&!onb.hidden)||(intro&&document.body.contains(intro))||st.openSheet==="nickSheet"){setTimeout(()=>tourStart(key,force),700);return}
   if(TS)tourEnd(false);
   const ov=document.createElement("div");ov.className="tourov";
   const hl=document.createElement("div");hl.className="tourhl";

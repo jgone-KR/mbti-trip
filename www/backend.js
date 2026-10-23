@@ -81,6 +81,12 @@
     community: function () { return rpc("list_community"); },
     unlock: function (id) { return rpc("unlock_plan", { pid: id }); },
     setNickname: function (n) { return rpc("set_nickname", { nick: n }); },
+    // 내 닉네임 (없으면 빈 문자열)
+    myNickname: async function () {
+      var s = await session();
+      var r = await rest("/profiles?select=nickname&user_id=eq." + q(s.uid));
+      return (r && r[0] && r[0].nickname) || "";
+    },
     ai: async function (prompt) {
       var r = await fetch(U + "/functions/v1/ai-replan", { method: "POST", headers: await headers(), body: JSON.stringify({ prompt: prompt }) });
       var j = await r.json().catch(function () { return {}; });

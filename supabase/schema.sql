@@ -158,11 +158,21 @@ begin
   return json_build_object('json', p.json, 'wallet', _wallet_json(auth.uid()));
 end $$;
 
+-- 닉네임: 2~12자, 한글·영문·숫자·띄어쓰기, 금지어 제외, 다른 사람과 겹치면 안 돼요
 create or replace function public.set_nickname(nick text) returns void
 language plpgsql security definer set search_path = public as $$
+declare n text := regexp_replace(trim(coalesce(nick, '')), '\s+', ' ', 'g');
 begin
   if auth.uid() is null then raise exception 'not_signed_in'; end if;
-  insert into profiles (user_id, nickname) values (auth.uid(), left(trim(nick), 20))
+  if char_length(n) < 2 or char_length(n) > 12 then raise exception 'nick_length'; end if;
+  if n !~ '^[가-힣A-Za-z0-9 _]+$' then raise exception 'nick_chars'; end if;
+  if lower(replace(n, ' ', '')) ~ '(씨발|시발|씹|병신|븅신|개새|새끼|좆|존나|느금|니미|애미|섹스|보지|자지|fuck|shit|bitch|sex|porn|운영자|관리자|admin|공식)' then
+    raise exception 'nick_banned';
+  end if;
+  if exists (select 1 from profiles where lower(nickname) = lower(n) and user_id <> auth.uid()) then
+    raise exception 'nick_taken';
+  end if;
+  insert into profiles (user_id, nickname) values (auth.uid(), n)
   on conflict (user_id) do update set nickname = excluded.nickname;
 end $$;
 
