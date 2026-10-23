@@ -169,7 +169,8 @@ begin
   if lower(replace(n, ' ', '')) ~ '(씨발|시발|씹|병신|븅신|개새|새끼|좆|존나|느금|니미|애미|섹스|보지|자지|fuck|shit|bitch|sex|porn|운영자|관리자|admin|공식)' then
     raise exception 'nick_banned';
   end if;
-  if exists (select 1 from profiles where lower(nickname) = lower(n) and user_id <> auth.uid()) then
+  -- 대소문자·띄어쓰기를 빼고 같으면 같은 닉네임으로 봐요
+  if exists (select 1 from profiles where lower(replace(nickname, ' ', '')) = lower(replace(n, ' ', '')) and user_id <> auth.uid()) then
     raise exception 'nick_taken';
   end if;
   insert into profiles (user_id, nickname) values (auth.uid(), n)
