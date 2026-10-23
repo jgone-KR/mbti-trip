@@ -827,6 +827,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 .hcol,.smain{display:contents}
 .cmap.dk .tl{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
 .mattr a{color:inherit}
+.lm .approx{display:inline-block;font-size:11.5px;font-weight:700;padding:0 6px;border-radius:999px;background:var(--chip);color:var(--muted);vertical-align:1px}
 .split{display:flex;flex-direction:column;gap:18px}
 .sidelock{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;min-height:260px;background:var(--paper);border-radius:18px;padding:24px;color:var(--muted)}
 .sidelock svg{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
@@ -1028,7 +1029,7 @@ li.stop.msel .scard{box-shadow:0 0 0 2px var(--accent);border-radius:12px}
     <p class="small" id="where">이 기기에 저장돼요</p>
     <div class="nick" id="nickBox" hidden><label for="nickInput" class="label" style="margin:0">커뮤니티 닉네임</label><form id="nickForm" class="nrow"><input id="nickInput" maxlength="20" placeholder="공유한 코스에 보일 이름"><button type="submit">저장</button></form></div>
     <ul class="plans" id="plans"></ul>
-    <p class="small" style="text-align:center;margin-top:8px">앱 버전 v35 · 2026.10.23</p>
+    <p class="small" style="text-align:center;margin-top:8px">앱 버전 v36 · 2026.10.23</p>
   </section>
 
   <!-- 여행지 둘러보기 -->
@@ -1041,7 +1042,7 @@ li.stop.msel .scard{box-shadow:0 0 0 2px var(--accent);border-radius:12px}
   <!-- 추천 기준 -->
   <section class="page" id="pg-how" aria-labelledby="hHow" hidden>
     <div class="subbar"><button class="back" aria-label="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="hHow">추천 기준</h1></div>
-    <p class="small" style="margin:0 0 10px">앱 버전 <b>v35</b> · 2026.10.23</p>
+    <p class="small" style="margin:0 0 10px">앱 버전 <b>v36</b> · 2026.10.23</p>
     <button class="linkbtn" type="button" onclick="window.showOnboarding&&window.showOnboarding()" style="margin:0 0 14px">앱 사용법 다시 보기</button>
     <button class="linkbtn" type="button" onclick="window.resetTours&&window.resetTours();toast('화면별 도움말을 다시 켰어요. 각 화면에 들어가면 다시 나와요')" style="margin:0 0 14px">화면별 도움말 다시 켜기</button>
     <div class="howbody">
@@ -1912,7 +1913,7 @@ function legHTML(a,b,city,i){
   if(!L)return `<li class="leg"><div class="rail"></div><div class="lcard">${route}<span class="lm">직접 넣은 장소라 이동 시간은 길찾기에서 확인하세요</span>${links}</div></li>`;
   const avail=(b.h-(a.h+stayOf(a)))*60;
   const warn=L.min>avail+4?`<span class="warn">${fmtDur(L.min-Math.max(0,avail))} 빠듯해요</span>`:"";
-  return `<li class="leg"><div class="rail"><span class="licon">${LEGICON[L.kind]}</span></div><div class="lcard">${route}<span class="lm"><b>${L.mode}</b> 약 ${fmtDur(L.min)} · ${L.km<1?Math.round(L.km*100)*10+"m":L.km.toFixed(1)+"km"}${warn?" · "+warn:""}</span>${links}</div></li>`;
+  return `<li class="leg"><div class="rail"><span class="licon">${LEGICON[L.kind]}</span></div><div class="lcard">${route}<span class="lm"><b>${L.mode}</b> 약 ${fmtDur(L.min)} · ${L.km<1?Math.round(L.km*100)*10+"m":L.km.toFixed(1)+"km"}${isApprox(city,a,b)?` <span class="approx" title="정확한 위치를 아직 못 받아서 대략 계산했어요">대략</span>`:""}${warn?" · "+warn:""}</span>${links}</div></li>`;
 }
 function endHTML(day,E){
   const last=day[day.length-1],fin=last.h+stayOf(last),diff=(E-fin)*60;
@@ -2058,7 +2059,7 @@ function fitMap(M){
 }
 // 국내 코스: 지도 핀을 카카오 장소 ID의 실시간 위치로 맞춰요 (앱에 저장된 좌표는 수백 m 어긋난 곳이 있어서)
 // 국내 장소의 카카오 실시간 위치를 받아 두기: 지도 핀과 이동 거리·시간 계산에 써요(화면을 켜 둔 동안만, 저장 안 함)
-const LIVEREQ={};
+const LIVEREQ={},LIVEFAIL={};
 async function liveFetch(city,names){
   if(!isKR(city)||!kfOn())return 0;
   const need=[...new Set(names)].filter(n=>KID[n]&&!LIVECO[n]&&!LIVEREQ[n]);
@@ -2071,13 +2072,26 @@ async function liveFetch(city,names){
   await Promise.all(chunks.map(async c=>{try{const r=await window.TRIP_BACKEND.placeFind(c);
     (r||[]).forEach((h,i)=>{const n=need[ask.indexOf(c[i])];if(h&&!h.miss&&h.id===KID[n]&&isFinite(h.lat)&&isFinite(h.lng)){
       const old=(typeof GEOV!=="undefined"&&GEOV[n])||COORD[n];LIVECO[n]=[h.lat,h.lng];COORD[n]=LIVECO[n];
-      if(!old||kmBetween(old,LIVECO[n])>0.12)moved++}})}catch(e){c.forEach(x=>{delete LIVEREQ[need[ask.indexOf(x)]]})}}));
+      if(LIVEFAIL[n]){delete LIVEFAIL[n];moved++}
+      if(!old||kmBetween(old,LIVECO[n])>0.12)moved++}
+      else if(!LIVEFAIL[n]){LIVEFAIL[n]=1;moved++}})}
+    catch(e){c.forEach(x=>{const n=need[ask.indexOf(x)];delete LIVEREQ[n];if(!LIVEFAIL[n]){LIVEFAIL[n]=1;moved++}})}}));
   return moved;
 }
+// 여행지를 고르면 그 도시 장소 전체의 위치를 미리 받아 둬요 → 코스를 짤 때부터 정확한 거리로 계산
+const CITYLIVE={};
+function cityLive(c){if(!c||!CITY[c]||!isKR(c)||!kfOn())return Promise.resolve(0);
+  if(!CITYLIVE[c])CITYLIVE[c]=liveFetch(c,CITY[c].p.map(p=>p[0])).then(m=>{delete CITYLIVE[c];return m},()=>{delete CITYLIVE[c];return 0});
+  return CITYLIVE[c]}
+// 코스를 짜기 전에 위치를 받는 중이면 잠깐(최대 1.5초) 기다려요
+function waitLive(c,ms=1500){return Promise.race([cityLive(c),new Promise(r=>setTimeout(r,ms))])}
+// 위치를 못 받은 곳(인터넷 끊김 등)은 다시 연결되면 다시 시도해요
+addEventListener("online",()=>{for(const k in LIVEFAIL)delete LIVEFAIL[k];["rec","plan","view"].forEach(w=>{const P=planOf(w);if(P&&isKR(P.city))try{renderTicket(w,false)}catch(e){}});if(st.city)cityLive(st.city)});
+const isApprox=(city,a,b)=>isKR(city)&&!a.custom&&!b.custom&&(!kfOn()||LIVEFAIL[a.p[0]]||LIVEFAIL[b.p[0]]);
 function kmBetween(a,b){const r=Math.PI/180,dl=(b[0]-a[0])*r,dn=(b[1]-a[1])*r;return 12742*Math.asin(Math.sqrt(Math.sin(dl/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dn/2)**2))}
 async function livePins(M){
   if(!isKR(M.P.city)||!kfOn())return;
-  await liveFetch(M.P.city,M.L.filter(x=>!x.s.custom).map(x=>x.s.p[0]));
+  await Promise.all([liveFetch(M.P.city,M.L.filter(x=>!x.s.custom).map(x=>x.s.p[0])),CITYLIVE[M.P.city]]);
   if(!document.contains(M.el)||MAPS[M.w]!==M)return;
   let got=0;M.L.forEach(x=>{if(!x.s.custom&&LIVECO[x.s.p[0]]&&x.co!==LIVECO[x.s.p[0]]){x.co=LIVECO[x.s.p[0]];got++}});
   if(!got)return;
@@ -2375,15 +2389,15 @@ $("ageChips").addEventListener("click",e=>{const b=e.target.closest("[data-age]"
   st[k]=v;syncLen();savePrefs();renderHome();
 }));
 $("meChip").onclick=()=>go("test");
-$("goHome").onclick=()=>{const inRec=!$("condBody").hidden,req=(st.req||"").trim();st.appliedReq=req;st.rec=build();renderTicket("rec",true);reqBanner("none");
+$("goHome").onclick=async()=>{const gb=$("goHome");if(gb.dataset.busy)return;gb.dataset.busy=1;try{await waitLive(st.city)}finally{delete gb.dataset.busy}const inRec=!$("condBody").hidden,req=(st.req||"").trim();st.appliedReq=req;st.rec=build();renderTicket("rec",true);reqBanner("none");
   // 한 번 쓴 추가 요청은 입력칸에서 지워요(다른 지역으로 다시 추천받을 때 모르고 같이 들어가지 않게). 이 코스의 '다른 코스'에는 계속 반영돼요.
   if(req){st.req="";reqSave();renderReq()}
   if(inRec){condClose(false);renderRecSum();$("recCond").scrollIntoView({behavior:"smooth",block:"start"});if(!req)toast("바꾼 조건으로 새 코스를 짰어요")}else go("rec");if(req)aiRec(null,req)};
 $("reqChips").onclick=e=>{const b=e.target.closest("button[data-rc]");if(!b)return;const a=reqParts(),c=b.dataset.rc,i=a.indexOf(c);if(i>=0)a.splice(i,1);else a.push(c);st.req=a.join(", ");reqSave();renderReq()};
 $("reqInput").addEventListener("input",e=>{st.req=e.target.value.replace(/\s+/g," ").trimStart();reqSave();renderReq()});
 document.addEventListener("click",e=>{if(e.target&&e.target.id==="reqClear"){st.req="";st.appliedReq="";reqSave();st.rec=build();renderTicket("rec",true);renderRecSum();reqBanner("none");renderReq();toast("요청을 지우고 기본 추천으로 바꿨어요")}});
-$("picks").onclick=e=>{const b=e.target.closest("button[data-pick]");if(!b)return;setCity(b.dataset.pick);st.rec=build();renderTicket("rec",true);go("rec")};
-function setCity(c){st.city=c;st.country=CITY[c].c;savePrefs()}
+$("picks").onclick=async e=>{const b=e.target.closest("button[data-pick]");if(!b)return;setCity(b.dataset.pick);await waitLive(st.city);st.rec=build();renderTicket("rec",true);go("rec")};
+function setCity(c){st.city=c;st.country=CITY[c].c;savePrefs();cityLive(c)}
 /* 여행지 선택 시트 */
 function renderCitySheet(){
   $("csCountries").innerHTML=Object.keys(COUNTRY).map(c=>`<button data-c="${c}" aria-pressed="${st.csCountry===c}">${c}</button>`).join("");
@@ -2397,7 +2411,7 @@ $("csCities").onclick=e=>{const b=e.target.closest("button[data-city]");if(!b)re
 function renderCities(){
   $("cityGroups").innerHTML=Object.keys(COUNTRY).map(co=>`<div class="cgroup"><h2>${co}</h2><ul class="clist">${citiesOf(co).map(c=>cityRow(c,"")).join("")}</ul></div>`).join("");
 }
-$("cityGroups").onclick=e=>{const b=e.target.closest("button[data-city]");if(!b)return;setCity(b.dataset.city);st.rec=build();renderTicket("rec",true);go("rec")};
+$("cityGroups").onclick=async e=>{const b=e.target.closest("button[data-city]");if(!b)return;setCity(b.dataset.city);await waitLive(st.city);st.rec=build();renderTicket("rec",true);go("rec")};
 
 /* ---------- 성향 검사 ---------- */
 function meterRow(left,right,pos,leftOn,rightOn){
@@ -2518,10 +2532,11 @@ function renderTicket(w,fresh=true){
     else{sd.innerHTML=mapPanelHTML(w,P,dv);mountMap(w,P,dv)}}
   else if(sd){sd.hidden=true;if(sd.innerHTML){sd.innerHTML="";if(MAPS[w]&&!document.contains(MAPS[w].el))delete MAPS[w]}}
   if(!locked&&!sideOn(w)&&vmOf(w)==="map")mountMap(w,P,dv);
-  if(!locked&&isKR(P.city))liveFetch(P.city,P.days.flat().filter(s=>!s.custom&&!isFreeStop(s)).map(s=>s.p[0])).then(m=>{
+  if(!locked&&isKR(P.city))Promise.all([liveFetch(P.city,P.days.flat().filter(s=>!s.custom&&!isFreeStop(s)).map(s=>s.p[0])),CITYLIVE[P.city]]).then(([a,b])=>{const m=(a||0)+(b||0);
     if(!m||planOf(w)!==P)return;const ae=document.activeElement;if(ae&&t.contains(ae)&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName))return;
     const y=scrollY;renderTicket(w,false);scrollTo(0,y)});
 }
+setTimeout(()=>{try{if(st.city)cityLive(st.city)}catch(e){}},400);
 /* 태블릿 가로(넓은 화면): 코스 목록 옆에 지도를 늘 띄워요 */
 function sideOn(w){return typeof WIDE!=="undefined"&&!!WIDE&&WIDE.matches&&!!$("side-"+w)}
 WIDE.addEventListener&&WIDE.addEventListener("change",()=>{["rec","plan","view"].forEach(w=>{const t=$(w==="rec"?"recTicket":w==="view"?"viewTicket":"planTicket");if(t&&t.innerHTML&&planOf(w))try{renderTicket(w,false)}catch(e){}})});
@@ -3142,7 +3157,7 @@ function renderLive(){
     :`<li class="hint">남은 일정이 없어요. '배고파'나 '이대로 갈래'를 누르면 근처 추천을 받을 수 있어요.</li>`;
 }
 // 여행 중 모드: 이 도시 장소들의 카카오 실시간 위치로 거리·이동 시간을 다시 계산해요
-{const base=renderLive;renderLive=function(){base();if(LV.city&&isKR(LV.city)&&CITY[LV.city])liveFetch(LV.city,CITY[LV.city].p.map(p=>p[0])).then(m=>{if(m&&st.page==="live")base()})}}
+{const base=renderLive;renderLive=function(){base();if(LV.city&&isKR(LV.city)&&CITY[LV.city])cityLive(LV.city).then(m=>{if(m&&st.page==="live")base()})}}
 /* 추천 카드에서 한 곳만 바꾸기: 같은 종류 중 앞 장소와 가깝고 성향에 맞는 곳 */
 function pswapCands(P,i){
   const s=P.stops[i];if(!s||s.custom)return[];
