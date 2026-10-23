@@ -1028,7 +1028,7 @@ li.stop.msel .scard{box-shadow:0 0 0 2px var(--accent);border-radius:12px}
     <p class="small" id="where">이 기기에 저장돼요</p>
     <div class="nick" id="nickBox" hidden><label for="nickInput" class="label" style="margin:0">커뮤니티 닉네임</label><form id="nickForm" class="nrow"><input id="nickInput" maxlength="20" placeholder="공유한 코스에 보일 이름"><button type="submit">저장</button></form></div>
     <ul class="plans" id="plans"></ul>
-    <p class="small" style="text-align:center;margin-top:8px">앱 버전 v33 · 2026.10.23</p>
+    <p class="small" style="text-align:center;margin-top:8px">앱 버전 v34 · 2026.10.23</p>
   </section>
 
   <!-- 여행지 둘러보기 -->
@@ -1041,7 +1041,7 @@ li.stop.msel .scard{box-shadow:0 0 0 2px var(--accent);border-radius:12px}
   <!-- 추천 기준 -->
   <section class="page" id="pg-how" aria-labelledby="hHow" hidden>
     <div class="subbar"><button class="back" aria-label="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="hHow">추천 기준</h1></div>
-    <p class="small" style="margin:0 0 10px">앱 버전 <b>v33</b> · 2026.10.23</p>
+    <p class="small" style="margin:0 0 10px">앱 버전 <b>v34</b> · 2026.10.23</p>
     <button class="linkbtn" type="button" onclick="window.showOnboarding&&window.showOnboarding()" style="margin:0 0 14px">앱 사용법 다시 보기</button>
     <button class="linkbtn" type="button" onclick="window.resetTours&&window.resetTours();toast('화면별 도움말을 다시 켰어요. 각 화면에 들어가면 다시 나와요')" style="margin:0 0 14px">화면별 도움말 다시 켜기</button>
     <div class="howbody">
@@ -2003,7 +2003,8 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden)peekAi()})
 /* ---------- 코스 지도 ---------- */
 // 지도 그림: OpenStreetMap 기본 지도(키 필요 없음, 출처 표시 필수). 2026-10 CARTO가 키 없는 사용을 막아서 바꿨어요. 장소 사이 선은 직선이에요(실제 도로가 아님).
 const DAYC=["#E0603A","#2F7DE1","#2A9D6F","#9B5DE5","#E39A1B","#D6336C","#4B5563"];
-const coOf=n=>(typeof GEOV!=="undefined"&&GEOV[n])||COORD[n]||null;
+const LIVECO={};   // 카카오 장소 ID로 받은 실시간 좌표 (이 화면을 켜 둔 동안만 메모리에 두고 저장하지 않아요)
+const coOf=n=>LIVECO[n]||(typeof GEOV!=="undefined"&&GEOV[n])||COORD[n]||null;
 st.vm=st.vm||{};
 var WIDE=matchMedia("(min-width:1000px) and (min-height:600px)");
 const vmOf=w=>st.vm[w]||"list";
@@ -2036,14 +2037,14 @@ function mountMap(w,P,dv){
   const L=mapStops(P,dv),pts=L.filter(x=>x.co);
   const M={w,el,L,pts,z:12,cx:0,cy:0,sel:null,imgs:{},fails:0,P,dv};MAPS[w]=M;
   if(!pts.length){el.classList.add("notile");el.insertAdjacentHTML("beforeend",`<p class="small" style="position:absolute;inset:auto 0 45%;text-align:center">지도에 표시할 장소가 없어요</p>`);return}
-  requestAnimationFrame(()=>{fitMap(M);drawMap(M)});
+  requestAnimationFrame(()=>{fitMap(M);drawMap(M);livePins(M)});
   // 끌어서 이동, 두 손가락으로 확대·축소
   const ptr=new Map();let last=null,pinch=null,moved=0,tapT=0;
   el.addEventListener("pointerdown",e=>{if(e.target.closest(".mctl,.minfo,.mpin,.mattr"))return;el.setPointerCapture(e.pointerId);ptr.set(e.pointerId,[e.clientX,e.clientY]);moved=0;
     if(ptr.size===2){const [a,b]=[...ptr.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1]),z:M.z}}else last=[e.clientX,e.clientY]});
   el.addEventListener("pointermove",e=>{if(!ptr.has(e.pointerId))return;ptr.set(e.pointerId,[e.clientX,e.clientY]);
     if(ptr.size===2&&pinch){const [a,b]=[...ptr.values()];const r=Math.hypot(a[0]-b[0],a[1]-b[1])/pinch.d;const nz=Math.round(pinch.z+Math.log2(r));if(nz!==M.z)zoomMap(M,nz-M.z);moved=9;return}
-    if(last){const dx=e.clientX-last[0],dy=e.clientY-last[1];moved+=Math.abs(dx)+Math.abs(dy);M.cx-=dx;M.cy-=dy;last=[e.clientX,e.clientY];drawMap(M)}});
+    if(last){const dx=e.clientX-last[0],dy=e.clientY-last[1];moved+=Math.abs(dx)+Math.abs(dy);if(moved>6)M.touched=1;M.cx-=dx;M.cy-=dy;last=[e.clientX,e.clientY];drawMap(M)}});
   const up=e=>{ptr.delete(e.pointerId);if(ptr.size<2)pinch=null;if(!ptr.size){if(moved<6&&!e.target.closest(".mctl,.minfo,.mpin")){const now=Date.now();if(now-tapT<320){const r=el.getBoundingClientRect();zoomMap(M,1,e.clientX-r.left,e.clientY-r.top)}else selMap(M,null);tapT=now}last=null}else{const v=[...ptr.values()][0];last=v}};
   el.addEventListener("pointerup",up);el.addEventListener("pointercancel",up);
   el.addEventListener("wheel",e=>{e.preventDefault();const r=el.getBoundingClientRect();zoomMap(M,e.deltaY<0?1:-1,e.clientX-r.left,e.clientY-r.top)},{passive:false});
@@ -2055,7 +2056,25 @@ function fitMap(M){
   let z=16;for(;z>3;z--){if(lng2x(e,z)-lng2x(w0,z)<=W-70&&lat2y(s0,z)-lat2y(n,z)<=H-90)break}
   M.z=Math.min(z,16);M.cx=(lng2x(e,M.z)+lng2x(w0,M.z))/2;M.cy=(lat2y(s0,M.z)+lat2y(n,M.z))/2+18;
 }
+// 국내 코스: 지도 핀을 카카오 장소 ID의 실시간 위치로 맞춰요 (앱에 저장된 좌표는 수백 m 어긋난 곳이 있어서)
+async function livePins(M){
+  if(!isKR(M.P.city)||!kfOn())return;
+  const need=[...new Set(M.L.filter(x=>!x.s.custom&&KID[x.s.p[0]]&&!LIVECO[x.s.p[0]]).map(x=>x.s.p[0]))];
+  if(!need.length)return;
+  const ask=need.map(n=>{const co=(typeof GEOV!=="undefined"&&GEOV[n])||COORD[n]||null,I=INFO[n];
+    return {q:qOf(n,M.P.city),alt:I&&I[0]?M.P.city+" "+I[0].split("·")[0].trim():"",id:KID[n],lat:co?co[0]:undefined,lng:co?co[1]:undefined}});
+  const chunks=[];for(let i=0;i<ask.length;i+=12)chunks.push(ask.slice(i,i+12));
+  let got=0;
+  await Promise.all(chunks.map(async c=>{try{const r=await window.TRIP_BACKEND.placeFind(c);
+    (r||[]).forEach((h,i)=>{const n=need[ask.indexOf(c[i])];if(h&&!h.miss&&h.id===KID[n]&&isFinite(h.lat)&&isFinite(h.lng)){LIVECO[n]=[h.lat,h.lng];got++}})}catch(e){}}));
+  if(!got||!document.contains(M.el)||MAPS[M.w]!==M)return;
+  M.L.forEach(x=>{if(!x.s.custom&&LIVECO[x.s.p[0]])x.co=LIVECO[x.s.p[0]]});
+  M.pts=M.L.filter(x=>x.co);
+  if(!M.touched){M.imgs={};M.el.querySelector(".tl").innerHTML="";fitMap(M)}
+  drawMap(M);
+}
 function zoomMap(M,dz,px,py){
+  M.touched=1;
   const nz=Math.max(3,Math.min(18,M.z+dz));if(nz===M.z)return;
   const W=M.el.clientWidth,H=M.el.clientHeight;if(px==null){px=W/2;py=H/2}
   const wx=M.cx-W/2+px,wy=M.cy-H/2+py,k=2**(nz-M.z);

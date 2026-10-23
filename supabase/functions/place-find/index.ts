@@ -34,19 +34,19 @@ Deno.serve(async (req) => {
   if (!key) return json({ error: "no_api_key" }, 500);
   try {
     const body = await req.json().catch(() => ({}));
-    const list = Array.isArray(body?.places) ? body.places.slice(0, 2) : [];
+    const list = Array.isArray(body?.places) ? body.places.slice(0, 12) : [];
     if (!list.length) return json({ error: "bad_request" }, 400);
-    const out = [];
-    for (const p of list) {
+    // 코스 지도 핀: 한 번에 최대 12곳을 동시에 찾아요 (길찾기는 1곳씩)
+    const out = await Promise.all(list.map(async (p: any) => { try {
       const q = String(p?.q ?? "").slice(0, 60).trim();
-      if (!q) { out.push(null); continue; }
+      if (!q) return null;
       const x = typeof p.lng === "number" ? p.lng : undefined, y = typeof p.lat === "number" ? p.lat : undefined;
       // 앱이 확인해 둔 카카오 장소 ID가 있으면 그 ID와 같은 장소만 써요 (다른 지점·다른 가게로 안내하지 않게)
       const want = typeof p.id === "string" && /^\d{3,12}$/.test(p.id) ? p.id : "";
       let docs = await search(key, q, x, y);
       let d = want ? docs.find((v) => v.id === want) : docs[0];
       if (!d && p.alt) { const d2 = await search(key, String(p.alt).slice(0, 60), x, y); d = want ? d2.find((v) => v.id === want) : d2[0]; }
-      if (!d) { out.push(want ? { id: want, miss: 1 } : null); continue; }
+      if (!d) return want ? { id: want, miss: 1 } : null;
       const hit: Record<string, unknown> = { id: d.id, name: d.place_name, lat: Number(d.y), lng: Number(d.x), addr: d.road_address_name || d.address_name || "" };
       // 전망대·산·공원처럼 차가 끝까지 못 가는 곳: 1.5km 안의 주차장을 같이 알려 줘요
       if (p.park) {
@@ -58,8 +58,8 @@ Deno.serve(async (req) => {
           hit.park = { name: pk.place_name, lat: Number(pk.y), lng: Number(pk.x), m };
         }
       }
-      out.push(hit);
-    }
+      return hit;
+    } catch (e) { console.error(e); return null; } }));
     return json({ results: out });
   } catch (e) {
     console.error(e);
