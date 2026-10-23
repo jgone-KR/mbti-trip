@@ -158,19 +158,31 @@ begin
   return json_build_object('json', p.json, 'wallet', _wallet_json(auth.uid()));
 end $$;
 
--- 닉네임: 2~12자, 한글·영문·숫자·띄어쓰기, 금지어 제외, 다른 사람과 겹치면 안 돼요
+-- 운영진 명단: 앱에서는 읽거나 바꿀 수 없고, 서버 함수만 확인해요 (추가는 SQL Editor에서)
+create table if not exists public.staff (
+  user_id    uuid primary key references auth.users(id) on delete cascade,
+  note       text,
+  created_at timestamptz not null default now()
+);
+alter table public.staff enable row level security;
+revoke all on public.staff from anon, authenticated;
+
+-- 닉네임: 2~12자, 한글·영문·숫자·띄어쓰기, 욕설 금지, 운영진 이름은 운영진만, 대소문자·띄어쓰기 빼고 겹치면 안 돼요
 create or replace function public.set_nickname(nick text) returns void
 language plpgsql security definer set search_path = public as $$
 declare n text := regexp_replace(trim(coalesce(nick, '')), '\s+', ' ', 'g');
+        flat text := lower(replace(n, ' ', ''));
 begin
   if auth.uid() is null then raise exception 'not_signed_in'; end if;
   if char_length(n) < 2 or char_length(n) > 12 then raise exception 'nick_length'; end if;
   if n !~ '^[가-힣A-Za-z0-9 _]+$' then raise exception 'nick_chars'; end if;
-  if lower(replace(n, ' ', '')) ~ '(씨발|시발|씹|병신|븅신|개새|새끼|좆|존나|느금|니미|애미|섹스|보지|자지|fuck|shit|bitch|sex|porn|운영자|관리자|admin|공식)' then
+  if flat ~ '(씨발|시발|씹|병신|븅신|개새|새끼|좆|존나|느금|니미|애미|섹스|보지|자지|fuck|shit|bitch|sex|porn)' then
     raise exception 'nick_banned';
   end if;
-  -- 대소문자·띄어쓰기를 빼고 같으면 같은 닉네임으로 봐요
-  if exists (select 1 from profiles where lower(replace(nickname, ' ', '')) = lower(replace(n, ' ', '')) and user_id <> auth.uid()) then
+  if flat ~ '(운영자|운영진|관리자|admin|staff|스태프|공식)' and not exists (select 1 from staff where user_id = auth.uid()) then
+    raise exception 'nick_banned';
+  end if;
+  if exists (select 1 from profiles where lower(replace(nickname, ' ', '')) = flat and user_id <> auth.uid()) then
     raise exception 'nick_taken';
   end if;
   insert into profiles (user_id, nickname) values (auth.uid(), n)
