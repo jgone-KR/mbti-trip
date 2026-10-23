@@ -122,17 +122,7 @@ begin
   return json_build_object('day', s, 'reward', r, 'wallet', _wallet_json(auth.uid()));
 end $$;
 
--- ⚠️ 테스트용 충전: 결제 없이 크레딧이 들어와요. 실제 출시 전에 반드시 지우고 결제 연동으로 바꾸세요.
-create or replace function public.charge_test(amount int) returns json
-language plpgsql security definer set search_path = public as $$
-begin
-  if auth.uid() is null then raise exception 'not_signed_in'; end if;
-  if amount not in (100, 300, 1000) then raise exception 'bad_amount'; end if;
-  insert into wallets (user_id) values (auth.uid()) on conflict do nothing;
-  update wallets set credits = credits + amount, updated_at = now() where user_id = auth.uid();
-  insert into credit_log (user_id, delta, why) values (auth.uid(), amount, '크레딧 충전 (테스트)');
-  return json_build_object('wallet', _wallet_json(auth.uid()));
-end $$;
+-- 크레딧은 출석 체크로만 받아요. (테스트 충전 charge_test는 2026-10-23에 없앴어요)
 
 -- 커뮤니티 목록: 남의 코스는 앞 2곳(preview)만 내려 줘요.
 create or replace function public.list_community()
@@ -178,7 +168,7 @@ end $$;
 
 -- ───────── 4. 실행 권한 ─────────
 revoke all on function public._wallet_json(uuid) from public, anon, authenticated;
-revoke all on function public.get_wallet(), public.checkin(), public.charge_test(int), public.list_community(),
+revoke all on function public.get_wallet(), public.checkin(), public.list_community(),
                        public.unlock_plan(text), public.set_nickname(text) from public, anon;
-grant execute on function public.get_wallet(), public.checkin(), public.charge_test(int), public.list_community(),
+grant execute on function public.get_wallet(), public.checkin(), public.list_community(),
                           public.unlock_plan(text), public.set_nickname(text) to authenticated;

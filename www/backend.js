@@ -78,7 +78,6 @@
     },
     wallet: function () { return rpc("get_wallet"); },
     checkin: function () { return rpc("checkin"); },
-    charge: function (n) { return rpc("charge_test", { amount: n }); },
     community: function () { return rpc("list_community"); },
     unlock: function (id) { return rpc("unlock_plan", { pid: id }); },
     setNickname: function (n) { return rpc("set_nickname", { nick: n }); },

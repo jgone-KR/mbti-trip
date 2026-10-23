@@ -822,6 +822,58 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 .pkbody .pkbtn{display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none;text-align:center}
 .pkbody .pkbtn small{font-weight:500;font-size:12.5px;opacity:.85}
 .pkbody .pkalt{display:block;text-align:center;padding:12px;border-radius:12px;border:1.5px solid var(--line);color:var(--ink);font-weight:700;text-decoration:none}
+
+/* ---------- 태블릿 ---------- */
+.hcol,.smain{display:contents}
+.split{display:flex;flex-direction:column;gap:18px}
+.sidelock{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;min-height:260px;background:var(--paper);border-radius:18px;padding:24px;color:var(--muted)}
+.sidelock svg{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.sidelock b{color:var(--ink)}
+li.stop.msel .scard{box-shadow:0 0 0 2px var(--accent);border-radius:12px}
+@media (prefers-reduced-motion:no-preference){li.stop.flash .scard{animation:sflash 1s ease-out}}
+@keyframes sflash{0%{background:var(--tint)}100%{background:transparent}}
+@media (min-width:768px) and (min-height:600px){
+  body{padding-left:calc(96px + max(24px,env(safe-area-inset-left,0px)));padding-right:max(28px,env(safe-area-inset-right,0px));padding-block:20px calc(28px + env(safe-area-inset-bottom,0px))}
+  .wrap{max-width:720px}
+  /* 아래 탭 → 왼쪽 세로 메뉴 */
+  .tabbar{top:0;right:auto;width:88px;border-top:0;border-right:1px solid var(--line);padding:max(18px,env(safe-area-inset-top,0px)) 0 env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);box-sizing:content-box}
+  .tabbar .in{display:flex;flex-direction:column;gap:4px;max-width:none}
+  .tabbar button{margin:0 8px;padding:11px 0 9px;border-radius:14px;font-size:12.5px;gap:4px}
+  .tabbar button[aria-current="page"]{background:var(--tint)}
+  .tabbar svg{width:24px;height:24px}
+  .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:calc(50% + 44px)}
+  .themefab{bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+  .recbar{bottom:0}
+  /* 아래에서 올라오는 창: 가운데 카드처럼 */
+  .sheet{left:88px;right:0;margin:0 auto;width:min(600px,calc(100% - 88px - 48px));bottom:16px;border-radius:20px;max-height:min(80vh,760px)}
+  .sheet .in{max-width:none}
+  .hello{font-size:34px}
+  .menu{grid-template-columns:repeat(8,1fr)}
+  .plans{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .clist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .cmap{height:min(60vh,560px)}
+}
+@media (min-width:1000px) and (min-height:600px){
+  .wrap{max-width:1180px}
+  .wrap>.page{max-width:780px;margin-inline:auto;width:100%}
+  .wrap>#pg-rec,.wrap>#pg-plan,.wrap>#pg-view{max-width:none}
+  /* 홈: 왼쪽 여행 준비, 오른쪽 메뉴·도시·최근 플랜 */
+  .wrap>#pg-home{max-width:none;display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:18px 36px;align-items:start}
+  #pg-home>.appbar{grid-column:1/-1}
+  #pg-home .hcol{display:flex;flex-direction:column;gap:18px;min-width:0}
+  #pg-home .hl{position:sticky;top:20px}
+  #pg-home .menu{grid-template-columns:repeat(4,1fr)}
+  #picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));overflow:visible}
+  #picks .mini{width:auto}
+  /* 코스: 왼쪽 목록, 오른쪽 지도(스크롤해도 따라와요) */
+  .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(380px,46%);gap:24px;align-items:start}
+  .side{position:sticky;top:16px;min-width:0}
+  .side .mapwrap{padding:0}
+  .side .cmap{height:calc(100vh - 150px);max-height:none;min-height:380px}
+  .side .mlist{display:none}
+  .side .mleg,.side .mfoot{padding:0 4px}
+  .split .smain{display:flex;flex-direction:column;gap:18px;min-width:0}
+}
 </style>
 
 <div class="onb" id="onb" role="dialog" aria-modal="true" aria-label="앱 사용법" hidden>
@@ -881,6 +933,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
   <!-- 홈 -->
   <section class="page" id="pg-home" aria-labelledby="hello">
     <div class="appbar"><span class="brand">MBTI <b>즉흥 여행</b></span><div class="abr"><button class="thbtn" type="button" aria-label="테마 바꾸기" onclick="document.getElementById('themeFab').click()"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1 0 1.5-.7 1.5-1.5 0-.5-.2-.8-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.8.7-1.5 1.5-1.5H16a5 5 0 0 0 5-5c0-4.1-4-7.6-9-7.6z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="15" cy="8" r="1"/></svg></button><button class="cchip" data-go="wallet" aria-label="내 크레딧"><svg class="coin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="currentColor"/><circle cx="12" cy="12" r="6.5" fill="none" stroke="var(--gold-bg)" stroke-width="1.6"/></svg><span id="cChip">0</span></button><button class="mechip" id="meChip" aria-label="내 성향 검사로 가기"></button></div></div>
+    <div class="hcol hl">
     <h1 class="hello" id="hello" data-greet="1">계획대로 안 돼도<br><span>괜찮은 여행</span></h1>
     <div id="tripNow"></div>
     <h2 style="margin-top:4px">여행 준비하기</h2>
@@ -897,6 +950,8 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
         <span class="fhelp">적으면 AI가 요청에 맞춰 코스를 짜요(AI 1회). 비워 두면 지금처럼 바로 추천해요(횟수 안 씀).</span><button type="button" class="aiq" data-aiq></button></div>
       <button class="go" id="goHome">코스 추천받기</button>
     </div>
+    </div>
+    <div class="hcol hr">
     <button class="liverow" data-go="live" id="liveRow"><span class="lri" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><path d="M12 6.5v3.2l2 1.3"/></svg></span><span class="lrt"><b>여행 중이라면 · 여행 중 모드</b><small>비, 웨이팅, 피곤할 때 AI가 남은 일정을 다시 짜 줘요</small></span><span class="lrg" aria-hidden="true">›</span></button>
 
     <div class="attend" id="attend"></div>
@@ -917,6 +972,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 
     <div class="sech"><h2>최근 저장한 플랜</h2><button data-go="saved">전체 보기</button></div>
     <div id="recentBox"></div>
+    </div>
   </section>
 
   <!-- 성향 검사 -->
@@ -941,7 +997,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
       <div class="condbody" id="condBody" hidden><p class="condhelp">아래에서 바꾸고 <b>이 조건으로 다시 추천</b>을 누르면 이 화면에서 바로 새 코스가 나와요.</p><div id="condSlot"></div></div>
     </section>
     <div id="recReq" aria-live="polite"></div>
-    <article class="ticket" id="recTicket" data-w="rec" aria-live="polite"></article>
+    <div class="split" id="split-rec"><div class="smain"><article class="ticket" id="recTicket" data-w="rec" aria-live="polite"></article>
     <div class="row recbar">
       <button id="again"><b>다른 코스</b><small>같은 조건</small></button>
       <button id="copyRec"><b>복사</b><small>친구에게 보내기</small></button>
@@ -949,6 +1005,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
     </div>
     <button class="linkbtn" data-go="how">이 코스는 어떻게 뽑혔나요?</button>
     <p class="foot">운영시간, 휴무일, 예약 여부는 바뀔 수 있으니 출발 전에 지도 앱에서 확인하세요. 시차는 표준시 기준이고 괄호는 서머타임 적용 시예요. 비행시간은 인천 출발 직항 기준 대략치예요.</p>
+    </div><aside class="side" id="side-rec" aria-label="코스 지도" hidden></aside></div>
   </section>
 
   <!-- 코스 짜기 -->
@@ -956,7 +1013,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
     <div class="subbar"><button class="back" aria-label="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="hPlan">코스 짜기</h1></div>
     <p class="small">시간을 바꾸고, 순서를 옮기고, 빼고, 더해서 나만의 코스를 완성하세요.</p>
     <div class="start" id="planStart"></div>
-    <article class="ticket" id="planTicket" data-w="plan" aria-live="polite" hidden></article>
+    <div class="split" id="split-plan"><div class="smain"><article class="ticket" id="planTicket" data-w="plan" aria-live="polite" hidden></article></div><aside class="side" id="side-plan" aria-label="코스 지도" hidden></aside></div>
     <div class="row" id="planRow" hidden>
       <button id="copyPlan">복사</button>
       <button id="newPlan">새로 시작</button>
@@ -969,7 +1026,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
     <p class="small" id="where">이 기기에 저장돼요</p>
     <div class="nick" id="nickBox" hidden><label for="nickInput" class="label" style="margin:0">커뮤니티 닉네임</label><form id="nickForm" class="nrow"><input id="nickInput" maxlength="20" placeholder="공유한 코스에 보일 이름"><button type="submit">저장</button></form></div>
     <ul class="plans" id="plans"></ul>
-    <p class="small" style="text-align:center;margin-top:8px">앱 버전 2026.10.21 · 자동 배포</p>
+    <p class="small" style="text-align:center;margin-top:8px">앱 버전 v32 · 2026.10.23</p>
   </section>
 
   <!-- 여행지 둘러보기 -->
@@ -982,7 +1039,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
   <!-- 추천 기준 -->
   <section class="page" id="pg-how" aria-labelledby="hHow" hidden>
     <div class="subbar"><button class="back" aria-label="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="hHow">추천 기준</h1></div>
-    <p class="small" style="margin:0 0 10px">앱 버전 <b>v31</b> · 2026.10.23</p>
+    <p class="small" style="margin:0 0 10px">앱 버전 <b>v32</b> · 2026.10.23</p>
     <button class="linkbtn" type="button" onclick="window.showOnboarding&&window.showOnboarding()" style="margin:0 0 14px">앱 사용법 다시 보기</button>
     <button class="linkbtn" type="button" onclick="window.resetTours&&window.resetTours();toast('화면별 도움말을 다시 켰어요. 각 화면에 들어가면 다시 나와요')" style="margin:0 0 14px">화면별 도움말 다시 켜기</button>
     <div class="howbody">
@@ -1084,7 +1141,7 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
   <!-- 커뮤니티 코스 보기 -->
   <section class="page" id="pg-view" aria-labelledby="hView" hidden>
     <div class="subbar"><button class="back" aria-label="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="hView">코스 보기</h1></div>
-    <article class="ticket" id="viewTicket" data-w="view" aria-live="polite"></article>
+    <div class="split" id="split-view"><div class="smain"><article class="ticket" id="viewTicket" data-w="view" aria-live="polite"></article></div><aside class="side" id="side-view" aria-label="코스 지도" hidden></aside></div>
     <div class="row" id="viewRow" hidden>
       <button id="copyView">복사</button>
       <button class="primary" id="viewToPlan">이 코스로 짜기</button>
@@ -1100,12 +1157,6 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
       <div class="stamps" id="stamps"></div>
       <p class="small">1일차 50 · 2~6일차 10 · 7일차 30 크레딧. 하루라도 빠지면 1일차부터 다시 시작해요.</p>
       <button class="gbtn" id="walletAttend">출석하기</button>
-    </div>
-    <div class="pcard" id="charge">
-      <h2>크레딧 충전</h2>
-      <p class="testnote"><b>테스트 모드</b> · 아직 결제가 연결되지 않아서 실제로 돈이 나가지 않고 크레딧만 들어와요.</p>
-      <div class="packs" id="packs"></div>
-      <button class="go" id="chargeBtn">충전하기</button>
     </div>
     <div class="page" style="gap:8px">
       <h2>크레딧 내역</h2>
@@ -1952,6 +2003,7 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden)peekAi()})
 const DAYC=["#E0603A","#2F7DE1","#2A9D6F","#9B5DE5","#E39A1B","#D6336C","#4B5563"];
 const coOf=n=>(typeof GEOV!=="undefined"&&GEOV[n])||COORD[n]||null;
 st.vm=st.vm||{};
+var WIDE=matchMedia("(min-width:1000px) and (min-height:600px)");
 const vmOf=w=>st.vm[w]||"list";
 function vmodeHTML(w){const m=vmOf(w);
   return `<div class="vmode" role="tablist" aria-label="보기 방식"><button role="tab" data-vm="list" aria-selected="${m==="list"}"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>목록</button><button role="tab" data-vm="map" aria-selected="${m==="map"}"><svg viewBox="0 0 24 24"><path d="M9 4l-5 2v14l5-2 6 2 5-2V4l-5 2z"/><path d="M9 4v14M15 6v14"/></svg>지도</button></div>`}
@@ -2027,9 +2079,13 @@ function drawMap(M){
   el.querySelector(".pn").innerHTML=M.L.map((x,k)=>{if(!x.co)return"";const [px,py]=xy(x.co);return `<button type="button" class="mpin${M.sel===k?" sel":""}" data-mk="${k}" style="left:${px.toFixed(1)}px;top:${py.toFixed(1)}px;background:${DAYC[x.d%7]}" aria-label="${x.i+1}번 ${esc(x.s.p[0])}">${x.i+1}</button>`}).join("")
     +(typeof LV!=="undefined"&&LV.gps&&LV.gps.co&&LV.city===M.P.city?(()=>{const [px,py]=xy(LV.gps.co);return `<span class="mpin me" style="left:${px}px;top:${py}px" title="내 위치"></span>`})():"");
 }
+function sideFocus(M){const x=M.L[M.sel];if(!x)return;const day=$(`day-${M.w}-${x.d}`);if(!day||day.hidden)return;const li=day.querySelectorAll("li.stop")[x.i];if(!li)return;
+  li.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"center"});li.classList.remove("flash");void li.offsetWidth;li.classList.add("flash")}
 function selMap(M,k,pan){
   M.sel=k;const old=M.el.querySelector(".minfo");if(old)old.remove();
   document.querySelectorAll(`#cmap-${M.w}~.mlist li, .mapwrap .mlist li`).forEach(li=>li.classList.toggle("sel",k!=null&&+li.dataset.mk===k));
+  if(sideOn(M.w)){const x=k!=null&&M.L[k];document.querySelectorAll(`[data-w="${M.w}"] li.stop.msel`).forEach(li=>li.classList.remove("msel"));
+    if(x){const day=$(`day-${M.w}-${x.d}`),li=day&&day.querySelectorAll("li.stop")[x.i];if(li)li.classList.add("msel")}}
   if(k!=null){const x=M.L[k],P=M.P;
     if(pan&&x.co){M.cx=lng2x(x.co[1],M.z);M.cy=lat2y(x.co[0],M.z)+40}
     M.el.insertAdjacentHTML("beforeend",`<div class="minfo"><span style="color:${DAYC[x.d%7]};font-weight:700;font-size:12.5px">${P.days.length>1?x.d+1+"일차 · ":""}${x.i+1}번째 · ${fmt(x.s.h)} · ${CAT[x.s.cat]||"기타"}</span><b>${esc(x.s.p[0])}</b>${x.s.p[5]?`<span class="small" style="margin:0">${esc(x.s.p[5])}</span>`:""}<span class="r"><a href="${placeURL(x.s.p[0],P.city)}" target="_blank" rel="noopener">${mapApp(P.city)}에서 보기</a>${!x.s.custom?`<a href="${igURL(x.s.p[0])}" target="_blank" rel="noopener" style="color:#c13584">인스타</a>`:""}</span></div>`)}
@@ -2042,7 +2098,7 @@ document.addEventListener("click",e=>{
   const M=Object.values(MAPS).find(m=>wrap.contains(m.el));if(!M)return;
   const z=e.target.closest("[data-mz]");if(z){zoomMap(M,+z.dataset.mz);return}
   if(e.target.closest("[data-mfit]")){M.imgs={};M.el.querySelector(".tl").innerHTML="";fitMap(M);selMap(M,null);return}
-  const pin=e.target.closest(".mpin[data-mk]");if(pin){selMap(M,+pin.dataset.mk);return}
+  const pin=e.target.closest(".mpin[data-mk]");if(pin){selMap(M,+pin.dataset.mk);if(sideOn(M.w))sideFocus(M);return}
   const li=e.target.closest(".mlist li[data-mk]");if(li&&!li.classList.contains("nogeo")){selMap(M,+li.dataset.mk,true);M.el.scrollIntoView({behavior:"smooth",block:"center"})}
 });
 window.addEventListener("resize",()=>{for(const k in MAPS){const M=MAPS[k];if(document.contains(M.el))drawMap(M)}});
@@ -2414,15 +2470,30 @@ function renderTicket(w,fresh=true){
   const lockHTML=locked?`<div class="lockpanel"><span class="lk">나머지 ${total-shown}곳은 잠겨 있어요</span>
       <span class="small">${VIEW_COST} 크레딧으로 전체 코스를 볼 수 있어요. 지금 보유 ${wallet.credits} 크레딧</span>
       ${wallet.credits>=VIEW_COST?`<button class="gbtn" id="unlockBtn">${VIEW_COST} 크레딧으로 전체 보기</button>`
-        :`<button class="go" id="toCharge">크레딧 충전하러 가기</button><span class="small">${VIEW_COST-wallet.credits} 크레딧이 부족해요.${checkedToday()?"":" 오늘 출석 체크로도 받을 수 있어요."}</span>`}</div>`:"";
+        :`<button class="go" id="toCharge">출석 체크하러 가기</button><span class="small">${VIEW_COST-wallet.credits} 크레딧이 부족해요.${checkedToday()?"":" 오늘 출석 체크로도 받을 수 있어요."}</span>`}</div>`:"";
   const by=w==="view"&&st.viewItem?`<div class="desc">공유한 사람 · <span data-author="${esc(st.viewItem.author)}">${esc(authorName(st.viewItem.author))}</span></div>`:"";
   t.innerHTML=`<div class="post" style="background:linear-gradient(135deg,${K[1]},${K[2]})"><div class="cc">${K[0]}</div><div class="native">${esc(C.nat)}</div><div class="meta">${meta}</div></div>
     <div class="stub"><div class="code">${rl?rl+" · ":""}${P.len} · No.${P.no}</div><div class="dest">${esc(P.name||P.city)}</div><div class="type">${pr.code}</div><div class="desc">${esc(describe(pr))}</div>${by}</div>
-    <div class="perf"></div>${P.days.length>1&&!locked?`<nav class="dtabs" role="tablist" aria-label="일차 선택"><button role="tab" data-dv="all" aria-selected="${dv==="all"}">전체</button>${P.days.map((day,d)=>`<button role="tab" data-dv="${d}" aria-selected="${dv===d}"><b>${d+1}일차</b><small>${P.date?dLabel(P.date,d).replace(/ \(.\)/,m=>m):""}${P.date?" · ":""}${day.filter(s=>!s.custom).length}곳</small></button>`).join("")}</nav>`:""}${w!=="view"&&P.shortDay!=null&&P.shortDay!==undefined?`<p class="shortnote">이 앱에 등록된 ${esc(P.city)} 장소는 ${P.pool||CITY[P.city].p.length}곳이라 ${P.shortDay+1}일차부터 '자유 시간'이 생겼어요. 자유 시간 칸의 <b>장소로 채우기</b>를 누르면 아직 안 간 곳이나 지도에서 찾은 곳으로 채울 수 있어요.</p>`:""}${locked?"":vmodeHTML(w)}${!locked&&vmOf(w)==="map"?mapPanelHTML(w,P,dv):days}${lockHTML}<div class="perf"></div>${save}
+    <div class="perf"></div>${P.days.length>1&&!locked?`<nav class="dtabs" role="tablist" aria-label="일차 선택"><button role="tab" data-dv="all" aria-selected="${dv==="all"}">전체</button>${P.days.map((day,d)=>`<button role="tab" data-dv="${d}" aria-selected="${dv===d}"><b>${d+1}일차</b><small>${P.date?dLabel(P.date,d).replace(/ \(.\)/,m=>m):""}${P.date?" · ":""}${day.filter(s=>!s.custom).length}곳</small></button>`).join("")}</nav>`:""}${w!=="view"&&P.shortDay!=null&&P.shortDay!==undefined?`<p class="shortnote">이 앱에 등록된 ${esc(P.city)} 장소는 ${P.pool||CITY[P.city].p.length}곳이라 ${P.shortDay+1}일차부터 '자유 시간'이 생겼어요. 자유 시간 칸의 <b>장소로 채우기</b>를 누르면 아직 안 간 곳이나 지도에서 찾은 곳으로 채울 수 있어요.</p>`:""}${locked||sideOn(w)?"":vmodeHTML(w)}${!locked&&!sideOn(w)&&vmOf(w)==="map"?mapPanelHTML(w,P,dv):days}${lockHTML}<div class="perf"></div>${save}
     ${ed||locked?"":`<div class="tips"><div class="label">${pr.code} 맞춤 팁</div><ul>${tips||"<li><b>·</b><span>균형 잡힌 코스예요.</span></li>"}</ul></div>`}`;
   if(fresh){t.classList.remove("fresh");void t.offsetWidth;t.classList.add("fresh")}
-  if(!locked&&vmOf(w)==="map")mountMap(w,P,dv);
+  const sd=$("side-"+w);
+  if(sideOn(w)&&sd){sd.hidden=false;
+    if(locked){delete MAPS[w];sd.innerHTML=`<div class="sidelock"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l-5 2v14l5-2 6 2 5-2V4l-5 2z"/><path d="M9 4v14M15 6v14"/></svg><b>코스 지도</b><span class="small">전체 코스를 열면 여기에 지도가 보여요.</span></div>`}
+    else{sd.innerHTML=mapPanelHTML(w,P,dv);mountMap(w,P,dv)}}
+  else if(sd){sd.hidden=true;if(sd.innerHTML){sd.innerHTML="";if(MAPS[w]&&!document.contains(MAPS[w].el))delete MAPS[w]}}
+  if(!locked&&!sideOn(w)&&vmOf(w)==="map")mountMap(w,P,dv);
 }
+/* 태블릿 가로(넓은 화면): 코스 목록 옆에 지도를 늘 띄워요 */
+function sideOn(w){return typeof WIDE!=="undefined"&&!!WIDE&&WIDE.matches&&!!$("side-"+w)}
+WIDE.addEventListener&&WIDE.addEventListener("change",()=>{["rec","plan","view"].forEach(w=>{const t=$(w==="rec"?"recTicket":w==="view"?"viewTicket":"planTicket");if(t&&t.innerHTML&&planOf(w))try{renderTicket(w,false)}catch(e){}})});
+// 넓은 화면에서 목록의 장소를 누르면 옆 지도에서 그 장소를 보여 줘요
+["recTicket","planTicket","viewTicket"].forEach(id=>{const el=$(id);if(!el)return;
+  el.addEventListener("click",e=>{const w=el.dataset.w;if(!sideOn(w))return;
+    if(e.target.closest("a,button,input,select,textarea,label"))return;
+    const li=e.target.closest("li.stop"),day=e.target.closest(".day");if(!li||!day)return;
+    const d=+day.id.split("-").pop(),i=[...day.querySelectorAll("li.stop")].indexOf(li),M=MAPS[w];if(!M||i<0)return;
+    const k=M.L.findIndex(x=>x.d===d&&x.i===i);if(k<0||!M.L[k].co)return;selMap(M,k,true)})});
 ["recTicket","planTicket","viewTicket"].forEach(id=>{
   const el=$(id),w=el.dataset.w;
   el.addEventListener("click",e=>{
@@ -2432,7 +2503,7 @@ function renderTicket(w,fresh=true){
     if(b.id==="saveBtn"){savePlan();return}
     if(b.id==="unlockBtn"){unlock();return}
     if(b.dataset.auto!==undefined){autoFit(w,+b.dataset.auto);return}
-    if(b.id==="toCharge"){st.afterCharge=true;go("wallet");setTimeout(()=>$("charge").scrollIntoView({behavior:"smooth"}),30);return}
+    if(b.id==="toCharge"){st.afterCharge=true;go("wallet");return}
     if(b.dataset.add!==undefined){openAdd(+b.dataset.add);return}
     const d=+b.dataset.d,i=+b.dataset.i,P=planOf(w);if(!P||isNaN(d))return;const day=P.days[d];
     if(b.dataset.act==="other")openSwap(w,d,i);
@@ -2561,7 +2632,7 @@ async function initStore(){
     store={kind:"db",col};
     initWalletDb(db.doc("data/users/"+uid+"/wallet"));
     initCommunity(db,uid);
-    $("where").textContent="내 계정에 저장돼요 · 다른 기기에서도 보여요";
+    $("where").textContent="내 계정에 저장돼요 · 이 기기(이 브라우저)에서만 보여요";
     col.orderBy("updatedAt","desc").onSnapshot(s=>{if(store.kind!=="db")return;saved=s.docs.filter(d=>d.id!=="wallet").map(d=>Object.assign({id:d.id},d.data()));renderSaved()},()=>useLocal());
   }catch(e){comState="off";refreshCommunity()}
 }
@@ -2621,7 +2692,6 @@ $("plans").onclick=async e=>{
 
 /* ---------- 크레딧·출석 ---------- */
 const REWARD=[50,10,10,10,10,10,30],VIEW_COST=20;
-const PACKS=[[100,1100],[300,3000],[1000,9000]];
 const WKEY="mbtiTripWallet";
 const COIN='<svg class="coin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="currentColor"/><circle cx="12" cy="12" r="6.5" fill="none" stroke="var(--gold-bg)" stroke-width="1.6"/></svg>';
 const normWallet=w=>({credits:Math.max(0,Math.floor(+w.credits||0)),streak:Math.min(7,Math.max(0,+w.streak||0)),last:typeof w.last==="string"?w.last:"",unlocked:Array.isArray(w.unlocked)?w.unlocked.filter(x=>typeof x==="string"):[],log:Array.isArray(w.log)?w.log.slice(0,30):[]});
@@ -2648,11 +2718,14 @@ const checkedToday=()=>wallet.last===todayIso();
 const nextStreak=()=>wallet.last===yesterdayIso()?(wallet.streak%7)+1:1;
 async function checkin(){
   if(checkedToday()){toast("오늘은 이미 출석했어요.");return}
-  if(isTB()){try{const r=await TB.checkin();applyWallet(r.wallet);toast(`출석 ${r.day}일차! ${r.reward} 크레딧을 받았어요.`)}catch(e){toast(tbErr(e))}return}
+  if(isTB()){try{const r=await TB.checkin();applyWallet(r.wallet);toast(`출석 ${r.day}일차! ${r.reward} 크레딧을 받았어요.`);backAfterAttend()}catch(e){toast(tbErr(e))}return}
   const s=nextStreak(),r=REWARD[s-1];
   wallet.streak=s;wallet.last=todayIso();wallet.credits+=r;addLog(r,`출석 ${s}일차`);commitWallet();
   toast(`출석 ${s}일차! ${r} 크레딧을 받았어요.`);
+  backAfterAttend();
 }
+// 잠긴 코스에서 '출석 체크하러 가기'로 왔으면 출석 후 그 코스로 돌아가요
+function backAfterAttend(){if(st.afterCharge&&st.viewItem&&st.page==="wallet"){st.afterCharge=false;setTimeout(()=>{if(st.page==="wallet")go(st.hist.pop()||"community",{push:false})},900)}}
 function renderAttend(){
   const el=$("attend");if(!el)return;
   if(checkedToday()){
@@ -2670,8 +2743,6 @@ function renderWallet(){
   $("stamps").innerHTML=REWARD.map((r,i)=>`<div class="stamp${i<filled?" on":""}${i===todayIdx?" today":""}"><span>${i+1}일</span><b>${r}</b></div>`).join("");
   $("streakTxt").textContent=filled?`${filled}일 연속 출석 중`:"오늘부터 시작해요";
   const wa=$("walletAttend");wa.disabled=checkedToday();wa.textContent=checkedToday()?"오늘 출석 완료":`출석하고 ${REWARD[nextStreak()-1]} 크레딧 받기`;
-  $("packs").innerHTML=PACKS.map(([n,won],i)=>`<button class="pack" data-pack="${i}" aria-pressed="${pack===i}"><b>${n.toLocaleString("ko-KR")}</b><small>₩${won.toLocaleString("ko-KR")}</small></button>`).join("");
-  $("chargeBtn").textContent=`${PACKS[pack][0].toLocaleString("ko-KR")} 크레딧 충전하기 (테스트)`;
   $("logs").innerHTML=wallet.log.length?wallet.log.map(l=>{const d=new Date(l.t);return `<li><span>${esc(l.why)}<span class="lt">${d.getMonth()+1}.${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}</span></span><span class="ld ${l.d>0?"plus":"minus"}">${l.d>0?"+":""}${l.d}</span></li>`}).join("")
     :`<li><span class="small">아직 내역이 없어요. 출석 체크로 첫 크레딧을 받아 보세요.</span></li>`;
 }
@@ -2684,14 +2755,6 @@ function renderWalletBits(){
 }
 document.addEventListener("click",e=>{if(e.target.closest("[data-checkin]"))checkin()});
 $("walletAttend").onclick=checkin;
-$("packs").onclick=e=>{const b=e.target.closest("button[data-pack]");if(!b)return;pack=+b.dataset.pack;renderWallet()};
-$("chargeBtn").onclick=async()=>{
-  const n=PACKS[pack][0];
-  if(isTB()){try{const r=await TB.charge(n);applyWallet(r.wallet)}catch(e){toast("충전하지 못했어요. "+tbErr(e));return}}
-  else{wallet.credits+=n;addLog(n,`크레딧 충전 (테스트)`);commitWallet()}
-  toast(`${n.toLocaleString("ko-KR")} 크레딧을 충전했어요. (테스트 모드)`);
-  if(st.afterCharge&&st.viewItem){st.afterCharge=false;go(st.hist.pop()||"community",{push:false})}
-};
 
 /* ---------- 커뮤니티 ---------- */
 let comState="loading",community=[],myShared={},myUid=null,userCap=null,sharedRef=null,names={};
@@ -3395,8 +3458,7 @@ const TOURS={
  community:[["#comFilter","도시 고르기","보고 싶은 여행지를 골라요."],
   ["#comSort","정렬","<b>최신순</b> 또는 <b>내 성향과 비슷한 순</b>으로 볼 수 있어요."],
   ["#comList","코스 카드","앞 2곳은 무료로 미리 보고, 전체는 <b>20 크레딧</b>으로 열어요. 한 번 연 코스는 계속 무료예요."]],
- wallet:[["#stamps","출석 체크","매일 출석하면 크레딧이 쌓여요. 1일차 50, 2~6일차 10, 7일차 30 크레딧이에요."],
-  ["#packs","크레딧 충전","지금은 테스트 모드라 실제로 돈이 나가지 않아요."]]
+ wallet:[["#stamps","출석 체크","매일 출석하면 크레딧이 쌓여요. 1일차 50, 2~6일차 10, 7일차 30 크레딧이에요."]]
 };
 const TKEY="mbtiTours1";
 const tSeen=()=>{try{return JSON.parse(localStorage.getItem(TKEY)||"{}")}catch(e){return {}}};
