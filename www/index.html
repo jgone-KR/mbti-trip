@@ -85,7 +85,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,la
 .hscroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}
 .mini{all:unset;cursor:pointer;flex:none;width:136px;height:112px;border-radius:14px;color:#fff;padding:12px;display:flex;flex-direction:column;justify-content:flex-end;scroll-snap-align:start;box-sizing:border-box;position:relative}
 .mini .cc{position:absolute;top:10px;right:10px;font-family:var(--body);font-variant-numeric:tabular-nums;font-size:12.5px;font-weight:600;border:1.5px dashed rgba(255,255,255,.6);padding:1px 5px;border-radius:3px}
-.mini .nt{font-family:var(--serif);font-size:22px;line-height:1.1;word-break:keep-all}
+.mini .nt{font-family:var(--body);font-weight:800;font-size:21px;line-height:1.15;letter-spacing:-.03em;word-break:keep-all}
 .mini .kn{font-size:13.5px;opacity:.92;font-weight:700}
 .recent{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .recent li{background:var(--paper);border-radius:12px}
@@ -133,7 +133,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,la
 .ticket{background:var(--paper);border-radius:18px;position:relative;filter:drop-shadow(0 6px 18px rgba(20,30,26,.10))}
 .post{margin:12px 12px 0;border-radius:12px;padding:18px 16px 14px;color:#fff;position:relative;overflow:hidden;min-height:132px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px}
 .post::after{content:"";position:absolute;right:14px;top:14px;width:58px;height:66px;border:2px dashed rgba(255,255,255,.55);border-radius:4px}
-.post .native{font-family:var(--serif);font-size:40px;line-height:1.05;letter-spacing:-.5px;word-break:keep-all;max-width:calc(100% - 70px)}
+.post .native{font-family:var(--body);font-weight:800;font-size:36px;line-height:1.1;letter-spacing:-.04em;word-break:keep-all;max-width:calc(100% - 70px)}
 .post .meta{font-family:var(--body);font-variant-numeric:tabular-nums;font-size:13px;opacity:.9;display:flex;flex-wrap:wrap;gap:4px 12px}
 .post .cc{position:absolute;right:14px;top:14px;width:58px;height:66px;display:grid;place-items:center;font-family:var(--body);font-variant-numeric:tabular-nums;font-weight:600;font-size:16px}
 .stub{padding:14px 20px 10px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:end}
@@ -1046,7 +1046,7 @@ li.stop.msel .scard{box-shadow:0 0 0 2px var(--accent);border-radius:12px}
     <p class="small" id="where">이 기기에 저장돼요</p>
     <div class="nick" id="nickBox" hidden><label for="nickInput" class="label" style="margin:0">커뮤니티 닉네임</label><form id="nickForm" class="nrow"><input id="nickInput" maxlength="12" placeholder="공유한 코스에 보일 이름"><button type="submit">저장</button></form></div>
     <ul class="plans" id="plans"></ul>
-    <p class="small" style="text-align:center;margin-top:8px">앱 버전 v38 · 2026.10.23</p>
+    <p class="small" style="text-align:center;margin-top:8px">앱 버전 v39 · 2026.10.23</p>
   </section>
 
   <!-- 여행지 둘러보기 -->
@@ -1059,7 +1059,7 @@ li.stop.msel .scard{box-shadow:0 0 0 2px var(--accent);border-radius:12px}
   <!-- 추천 기준 -->
   <section class="page" id="pg-how" aria-labelledby="hHow" hidden>
     <div class="subbar"><button class="back" aria-label="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="hHow">추천 기준</h1></div>
-    <p class="small" style="margin:0 0 10px">앱 버전 <b>v38</b> · 2026.10.23</p>
+    <p class="small" style="margin:0 0 10px">앱 버전 <b>v39</b> · 2026.10.23</p>
     <button class="linkbtn" type="button" onclick="window.showOnboarding&&window.showOnboarding()" style="margin:0 0 14px">앱 사용법 다시 보기</button>
     <button class="linkbtn" type="button" onclick="window.resetTours&&window.resetTours();toast('화면별 도움말을 다시 켰어요. 각 화면에 들어가면 다시 나와요')" style="margin:0 0 14px">화면별 도움말 다시 켜기</button>
     <div class="howbody">
@@ -2295,7 +2295,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet()});
 /* ---------- 홈 ---------- */
 function cityRow(c,attr){
   const C=CITY[c],K=COUNTRY[C.c];
-  return `<li><button class="crow" ${attr} data-city="${c}" ${c===st.city?'aria-current="true"':""}><span class="sw" style="background:${grad(c)}">${flagSVG(K[0])||K[0]}</span><span><span class="cn">${c} <span style="font-weight:400;color:var(--muted)">${esc(C.nat!==c?C.nat:"")}</span></span><span class="cm">${esc(C.tz)}${C.go?" · "+esc(C.go):""}</span></span><span class="chev">›</span></button></li>`;
+  return `<li><button class="crow" ${attr} data-city="${c}" ${c===st.city?'aria-current="true"':""}><span class="sw" style="background:${grad(c)}">${flagSVG(K[0])||K[0]}</span><span><span class="cn">${c}</span><span class="cm">${esc(C.tz)}${C.go?" · "+esc(C.go):""}</span></span><span class="chev">›</span></button></li>`;
 }
 /* 홈 맨 위: 오늘 여행 중이면 여행 중 모드를 크게, 곧 떠나면 D-day 카드 */
 function tripStatus(){
@@ -2414,7 +2414,7 @@ function renderHome(){
   const nn=nightsOf(st.len);
   $("lens").innerHTML=`<button id="len-half" data-l="반나절" aria-pressed="${st.len==="반나절"}">반나절</button><button id="len-day" data-l="하루" aria-pressed="${st.len==="하루"}">당일</button><button id="len-stay" data-l="${lenOf(nn||1)}" aria-pressed="${nn>0}">숙박</button>`
     +(nn?`<div class="nights" role="group" aria-label="숙박 일수"><button id="nMinus" data-n="${nn-1}" ${nn<=1?"disabled":""} aria-label="하루 줄이기">−</button><b>${st.len}</b><button id="nPlus" data-n="${nn+1}" ${nn>=MAXN?"disabled":""} aria-label="하루 늘리기">+</button></div>`:"");
-  $("picks").innerHTML=PICKS.map(c=>`<button class="mini" data-pick="${c}" style="background:${grad(c)}"><span class="cc">${flagSVG(COUNTRY[CITY[c].c][0])||COUNTRY[CITY[c].c][0]}</span><span class="nt">${esc(CITY[c].nat)}</span><span class="kn">${c}</span></button>`).join("");
+  $("picks").innerHTML=PICKS.map(c=>`<button class="mini" data-pick="${c}" style="background:${grad(c)}"><span class="cc">${flagSVG(COUNTRY[CITY[c].c][0])||COUNTRY[CITY[c].c][0]}</span><span class="nt">${c}</span></button>`).join("");
   renderRecent();renderTripNow();renderReq();
 }
 function renderRecent(){
@@ -2575,7 +2575,7 @@ function renderTicket(w,fresh=true){
       ${wallet.credits>=VIEW_COST?`<button class="gbtn" id="unlockBtn">${VIEW_COST} 크레딧으로 전체 보기</button>`
         :`<button class="go" id="toCharge">출석 체크하러 가기</button><span class="small">${VIEW_COST-wallet.credits} 크레딧이 부족해요.${checkedToday()?"":" 오늘 출석 체크로도 받을 수 있어요."}</span>`}</div>`:"";
   const by=w==="view"&&st.viewItem?`<div class="desc">공유한 사람 · <span data-author="${esc(st.viewItem.author)}">${esc(authorName(st.viewItem.author))}</span></div>`:"";
-  t.innerHTML=`<div class="post" style="background:linear-gradient(135deg,${K[1]},${K[2]})"><div class="cc">${flagSVG(K[0])}<span>${K[0]}</span></div><div class="native">${esc(C.nat)}</div><div class="meta">${meta}</div></div>
+  t.innerHTML=`<div class="post" style="background:linear-gradient(135deg,${K[1]},${K[2]})"><div class="cc">${flagSVG(K[0])}<span>${K[0]}</span></div><div class="native">${esc(P.city)}</div><div class="meta">${meta}</div></div>
     <div class="stub"><div class="code">${rl?rl+" · ":""}${P.len} · No.${P.no}</div><div class="dest">${esc(P.name||P.city)}</div><div class="type">${pr.code}</div><div class="desc">${esc(describe(pr))}</div>${by}</div>
     <div class="perf"></div>${P.days.length>1&&!locked?`<nav class="dtabs" role="tablist" aria-label="일차 선택"><button role="tab" data-dv="all" aria-selected="${dv==="all"}">전체</button>${P.days.map((day,d)=>`<button role="tab" data-dv="${d}" aria-selected="${dv===d}"><b>${d+1}일차</b><small>${P.date?dLabel(P.date,d).replace(/ \(.\)/,m=>m):""}${P.date?" · ":""}${day.filter(s=>!s.custom).length}곳</small></button>`).join("")}</nav>`:""}${w!=="view"&&P.shortDay!=null&&P.shortDay!==undefined?`<p class="shortnote">이 앱에 등록된 ${esc(P.city)} 장소는 ${P.pool||CITY[P.city].p.length}곳이라 ${P.shortDay+1}일차부터 '자유 시간'이 생겼어요. 자유 시간 칸의 <b>장소로 채우기</b>를 누르면 아직 안 간 곳이나 지도에서 찾은 곳으로 채울 수 있어요.</p>`:""}${locked||sideOn(w)?"":vmodeHTML(w)}${!locked&&!sideOn(w)&&vmOf(w)==="map"?mapPanelHTML(w,P,dv):days}${lockHTML}<div class="perf"></div>${save}
     ${ed||locked?"":`<div class="tips"><div class="label">${pr.code} 맞춤 팁</div><ul>${tips||"<li><b>·</b><span>균형 잡힌 코스예요.</span></li>"}</ul></div>`}`;
