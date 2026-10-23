@@ -825,6 +825,8 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 
 /* ---------- 태블릿 ---------- */
 .hcol,.smain{display:contents}
+.cmap.dk .tl{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
+.mattr a{color:inherit}
 .split{display:flex;flex-direction:column;gap:18px}
 .sidelock{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;min-height:260px;background:var(--paper);border-radius:18px;padding:24px;color:var(--muted)}
 .sidelock svg{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
@@ -1026,7 +1028,7 @@ li.stop.msel .scard{box-shadow:0 0 0 2px var(--accent);border-radius:12px}
     <p class="small" id="where">이 기기에 저장돼요</p>
     <div class="nick" id="nickBox" hidden><label for="nickInput" class="label" style="margin:0">커뮤니티 닉네임</label><form id="nickForm" class="nrow"><input id="nickInput" maxlength="20" placeholder="공유한 코스에 보일 이름"><button type="submit">저장</button></form></div>
     <ul class="plans" id="plans"></ul>
-    <p class="small" style="text-align:center;margin-top:8px">앱 버전 v32 · 2026.10.23</p>
+    <p class="small" style="text-align:center;margin-top:8px">앱 버전 v33 · 2026.10.23</p>
   </section>
 
   <!-- 여행지 둘러보기 -->
@@ -1039,7 +1041,7 @@ li.stop.msel .scard{box-shadow:0 0 0 2px var(--accent);border-radius:12px}
   <!-- 추천 기준 -->
   <section class="page" id="pg-how" aria-labelledby="hHow" hidden>
     <div class="subbar"><button class="back" aria-label="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="hHow">추천 기준</h1></div>
-    <p class="small" style="margin:0 0 10px">앱 버전 <b>v32</b> · 2026.10.23</p>
+    <p class="small" style="margin:0 0 10px">앱 버전 <b>v33</b> · 2026.10.23</p>
     <button class="linkbtn" type="button" onclick="window.showOnboarding&&window.showOnboarding()" style="margin:0 0 14px">앱 사용법 다시 보기</button>
     <button class="linkbtn" type="button" onclick="window.resetTours&&window.resetTours();toast('화면별 도움말을 다시 켰어요. 각 화면에 들어가면 다시 나와요')" style="margin:0 0 14px">화면별 도움말 다시 켜기</button>
     <div class="howbody">
@@ -1999,7 +2001,7 @@ document.addEventListener("click",e=>{if(e.target.closest("[data-aiq]")){renderA
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)peekAi()});
 
 /* ---------- 코스 지도 ---------- */
-// 지도 그림: CARTO(OpenStreetMap 데이터). 키가 필요 없고, 장소 사이 선은 직선이에요(실제 도로가 아님).
+// 지도 그림: OpenStreetMap 기본 지도(키 필요 없음, 출처 표시 필수). 2026-10 CARTO가 키 없는 사용을 막아서 바꿨어요. 장소 사이 선은 직선이에요(실제 도로가 아님).
 const DAYC=["#E0603A","#2F7DE1","#2A9D6F","#9B5DE5","#E39A1B","#D6336C","#4B5563"];
 const coOf=n=>(typeof GEOV!=="undefined"&&GEOV[n])||COORD[n]||null;
 st.vm=st.vm||{};
@@ -2023,7 +2025,7 @@ function mapPanelHTML(w,P,dv){
     :days.map(d=>{const u=gmapsAll(P,d);return u?`<a class="gbtn2" href="${u}" target="_blank" rel="noopener">${multi?d+1+"일차 ":""}전체 경로 구글 지도에서 열기</a>`:""}).join("")+`<p class="small">선은 장소 순서를 이은 직선이에요. 구글 지도에서는 실제 길과 대중교통으로 보여 줘요.</p>`;
   return `<div class="mapwrap"><div class="cmap" id="cmap-${w}" role="region" aria-label="코스 지도"><div class="tl"></div><svg class="rt"></svg><div class="pn"></div>
     <div class="mctl"><button type="button" data-mz="1" aria-label="확대">+</button><button type="button" data-mz="-1" aria-label="축소">−</button><button type="button" class="fit" data-mfit aria-label="코스 전체 보기">전체</button></div>
-    <div class="mattr">© OpenStreetMap · © CARTO</div></div>${leg}
+    <div class="mattr">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> 기여자</div></div>${leg}
     <ol class="mlist">${list}</ol>${no?`<p class="small" style="margin-top:8px">직접 넣은 장소 ${no}곳은 위치를 몰라서 지도에 없어요.</p>`:""}<div class="mfoot">${foot}</div></div>`;
 }
 const MAPS={};
@@ -2037,7 +2039,7 @@ function mountMap(w,P,dv){
   requestAnimationFrame(()=>{fitMap(M);drawMap(M)});
   // 끌어서 이동, 두 손가락으로 확대·축소
   const ptr=new Map();let last=null,pinch=null,moved=0,tapT=0;
-  el.addEventListener("pointerdown",e=>{if(e.target.closest(".mctl,.minfo,.mpin"))return;el.setPointerCapture(e.pointerId);ptr.set(e.pointerId,[e.clientX,e.clientY]);moved=0;
+  el.addEventListener("pointerdown",e=>{if(e.target.closest(".mctl,.minfo,.mpin,.mattr"))return;el.setPointerCapture(e.pointerId);ptr.set(e.pointerId,[e.clientX,e.clientY]);moved=0;
     if(ptr.size===2){const [a,b]=[...ptr.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1]),z:M.z}}else last=[e.clientX,e.clientY]});
   el.addEventListener("pointermove",e=>{if(!ptr.has(e.pointerId))return;ptr.set(e.pointerId,[e.clientX,e.clientY]);
     if(ptr.size===2&&pinch){const [a,b]=[...ptr.values()];const r=Math.hypot(a[0]-b[0],a[1]-b[1])/pinch.d;const nz=Math.round(pinch.z+Math.log2(r));if(nz!==M.z)zoomMap(M,nz-M.z);moved=9;return}
@@ -2062,12 +2064,13 @@ function zoomMap(M,dz,px,py){
 function drawMap(M){
   const el=M.el,W=el.clientWidth,H=el.clientHeight,z=M.z,N=2**z,left=M.cx-W/2,top=M.cy-H/2;
   const tl=el.querySelector(".tl"),dark=matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches&&document.documentElement.dataset.theme!=="light";
+  el.classList.toggle("dk",!!dark);
   const style=dark?"dark_all":"rastertiles/voyager",need={};
   if(M.fails<6){
     for(let tx=Math.floor(left/256);tx<=Math.floor((left+W)/256);tx++)for(let ty=Math.floor(top/256);ty<=Math.floor((top+H)/256);ty++){
       if(ty<0||ty>=N)continue;const k=tx+"/"+ty;need[k]=1;let im=M.imgs[k];
       if(!im){im=new Image();im.alt="";im.decoding="async";im.onerror=()=>{M.fails++;if(M.fails>=6){el.classList.add("notile");tl.innerHTML=""}};
-        im.src=`https://${"abcd"[(tx+ty+64)%4]}.basemaps.cartocdn.com/${style}/${z}/${((tx%N)+N)%N}/${ty}@2x.png`;M.imgs[k]=im;tl.appendChild(im)}
+        im.referrerPolicy="strict-origin-when-cross-origin";im.src=`https://tile.openstreetmap.org/${z}/${((tx%N)+N)%N}/${ty}.png`;M.imgs[k]=im;tl.appendChild(im)}
       im.style.left=(tx*256-left)+"px";im.style.top=(ty*256-top)+"px";
     }
     for(const k in M.imgs)if(!need[k]){M.imgs[k].remove();delete M.imgs[k]}
