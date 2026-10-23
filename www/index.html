@@ -1028,7 +1028,7 @@ li.stop.msel .scard{box-shadow:0 0 0 2px var(--accent);border-radius:12px}
     <p class="small" id="where">이 기기에 저장돼요</p>
     <div class="nick" id="nickBox" hidden><label for="nickInput" class="label" style="margin:0">커뮤니티 닉네임</label><form id="nickForm" class="nrow"><input id="nickInput" maxlength="20" placeholder="공유한 코스에 보일 이름"><button type="submit">저장</button></form></div>
     <ul class="plans" id="plans"></ul>
-    <p class="small" style="text-align:center;margin-top:8px">앱 버전 v34 · 2026.10.23</p>
+    <p class="small" style="text-align:center;margin-top:8px">앱 버전 v35 · 2026.10.23</p>
   </section>
 
   <!-- 여행지 둘러보기 -->
@@ -1041,7 +1041,7 @@ li.stop.msel .scard{box-shadow:0 0 0 2px var(--accent);border-radius:12px}
   <!-- 추천 기준 -->
   <section class="page" id="pg-how" aria-labelledby="hHow" hidden>
     <div class="subbar"><button class="back" aria-label="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="hHow">추천 기준</h1></div>
-    <p class="small" style="margin:0 0 10px">앱 버전 <b>v34</b> · 2026.10.23</p>
+    <p class="small" style="margin:0 0 10px">앱 버전 <b>v35</b> · 2026.10.23</p>
     <button class="linkbtn" type="button" onclick="window.showOnboarding&&window.showOnboarding()" style="margin:0 0 14px">앱 사용법 다시 보기</button>
     <button class="linkbtn" type="button" onclick="window.resetTours&&window.resetTours();toast('화면별 도움말을 다시 켰어요. 각 화면에 들어가면 다시 나와요')" style="margin:0 0 14px">화면별 도움말 다시 켜기</button>
     <div class="howbody">
@@ -2057,17 +2057,30 @@ function fitMap(M){
   M.z=Math.min(z,16);M.cx=(lng2x(e,M.z)+lng2x(w0,M.z))/2;M.cy=(lat2y(s0,M.z)+lat2y(n,M.z))/2+18;
 }
 // 국내 코스: 지도 핀을 카카오 장소 ID의 실시간 위치로 맞춰요 (앱에 저장된 좌표는 수백 m 어긋난 곳이 있어서)
+// 국내 장소의 카카오 실시간 위치를 받아 두기: 지도 핀과 이동 거리·시간 계산에 써요(화면을 켜 둔 동안만, 저장 안 함)
+const LIVEREQ={};
+async function liveFetch(city,names){
+  if(!isKR(city)||!kfOn())return 0;
+  const need=[...new Set(names)].filter(n=>KID[n]&&!LIVECO[n]&&!LIVEREQ[n]);
+  if(!need.length)return 0;
+  need.forEach(n=>LIVEREQ[n]=1);
+  const ask=need.map(n=>{const co=(typeof GEOV!=="undefined"&&GEOV[n])||COORD[n]||null,I=INFO[n];
+    return {q:qOf(n,city),alt:I&&I[0]?city+" "+I[0].split("·")[0].trim():"",id:KID[n],lat:co?co[0]:undefined,lng:co?co[1]:undefined}});
+  const chunks=[];for(let i=0;i<ask.length;i+=12)chunks.push(ask.slice(i,i+12));
+  let moved=0;
+  await Promise.all(chunks.map(async c=>{try{const r=await window.TRIP_BACKEND.placeFind(c);
+    (r||[]).forEach((h,i)=>{const n=need[ask.indexOf(c[i])];if(h&&!h.miss&&h.id===KID[n]&&isFinite(h.lat)&&isFinite(h.lng)){
+      const old=(typeof GEOV!=="undefined"&&GEOV[n])||COORD[n];LIVECO[n]=[h.lat,h.lng];COORD[n]=LIVECO[n];
+      if(!old||kmBetween(old,LIVECO[n])>0.12)moved++}})}catch(e){c.forEach(x=>{delete LIVEREQ[need[ask.indexOf(x)]]})}}));
+  return moved;
+}
+function kmBetween(a,b){const r=Math.PI/180,dl=(b[0]-a[0])*r,dn=(b[1]-a[1])*r;return 12742*Math.asin(Math.sqrt(Math.sin(dl/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dn/2)**2))}
 async function livePins(M){
   if(!isKR(M.P.city)||!kfOn())return;
-  const need=[...new Set(M.L.filter(x=>!x.s.custom&&KID[x.s.p[0]]&&!LIVECO[x.s.p[0]]).map(x=>x.s.p[0]))];
-  if(!need.length)return;
-  const ask=need.map(n=>{const co=(typeof GEOV!=="undefined"&&GEOV[n])||COORD[n]||null,I=INFO[n];
-    return {q:qOf(n,M.P.city),alt:I&&I[0]?M.P.city+" "+I[0].split("·")[0].trim():"",id:KID[n],lat:co?co[0]:undefined,lng:co?co[1]:undefined}});
-  const chunks=[];for(let i=0;i<ask.length;i+=12)chunks.push(ask.slice(i,i+12));
-  let got=0;
-  await Promise.all(chunks.map(async c=>{try{const r=await window.TRIP_BACKEND.placeFind(c);
-    (r||[]).forEach((h,i)=>{const n=need[ask.indexOf(c[i])];if(h&&!h.miss&&h.id===KID[n]&&isFinite(h.lat)&&isFinite(h.lng)){LIVECO[n]=[h.lat,h.lng];got++}})}catch(e){}}));
-  if(!got||!document.contains(M.el)||MAPS[M.w]!==M)return;
+  await liveFetch(M.P.city,M.L.filter(x=>!x.s.custom).map(x=>x.s.p[0]));
+  if(!document.contains(M.el)||MAPS[M.w]!==M)return;
+  let got=0;M.L.forEach(x=>{if(!x.s.custom&&LIVECO[x.s.p[0]]&&x.co!==LIVECO[x.s.p[0]]){x.co=LIVECO[x.s.p[0]];got++}});
+  if(!got)return;
   M.L.forEach(x=>{if(!x.s.custom&&LIVECO[x.s.p[0]])x.co=LIVECO[x.s.p[0]]});
   M.pts=M.L.filter(x=>x.co);
   if(!M.touched){M.imgs={};M.el.querySelector(".tl").innerHTML="";fitMap(M)}
@@ -2505,6 +2518,9 @@ function renderTicket(w,fresh=true){
     else{sd.innerHTML=mapPanelHTML(w,P,dv);mountMap(w,P,dv)}}
   else if(sd){sd.hidden=true;if(sd.innerHTML){sd.innerHTML="";if(MAPS[w]&&!document.contains(MAPS[w].el))delete MAPS[w]}}
   if(!locked&&!sideOn(w)&&vmOf(w)==="map")mountMap(w,P,dv);
+  if(!locked&&isKR(P.city))liveFetch(P.city,P.days.flat().filter(s=>!s.custom&&!isFreeStop(s)).map(s=>s.p[0])).then(m=>{
+    if(!m||planOf(w)!==P)return;const ae=document.activeElement;if(ae&&t.contains(ae)&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName))return;
+    const y=scrollY;renderTicket(w,false);scrollTo(0,y)});
 }
 /* 태블릿 가로(넓은 화면): 코스 목록 옆에 지도를 늘 띄워요 */
 function sideOn(w){return typeof WIDE!=="undefined"&&!!WIDE&&WIDE.matches&&!!$("side-"+w)}
@@ -3125,6 +3141,8 @@ function renderLive(){
       <div class="acts"><button data-arrive="${i}">여기 도착했어요</button>${i===0?rlinks:""}<button class="del" data-skip="${i}">건너뛰기</button></div></div></li>`}).join("")
     :`<li class="hint">남은 일정이 없어요. '배고파'나 '이대로 갈래'를 누르면 근처 추천을 받을 수 있어요.</li>`;
 }
+// 여행 중 모드: 이 도시 장소들의 카카오 실시간 위치로 거리·이동 시간을 다시 계산해요
+{const base=renderLive;renderLive=function(){base();if(LV.city&&isKR(LV.city)&&CITY[LV.city])liveFetch(LV.city,CITY[LV.city].p.map(p=>p[0])).then(m=>{if(m&&st.page==="live")base()})}}
 /* 추천 카드에서 한 곳만 바꾸기: 같은 종류 중 앞 장소와 가깝고 성향에 맞는 곳 */
 function pswapCands(P,i){
   const s=P.stops[i];if(!s||s.custom)return[];
@@ -3369,6 +3387,9 @@ for(const k in QN3)if(!QN[k])QN[k]=QN3[k];
 // 카카오 대조에서 위치가 1km 넘게 어긋났던 곳은 OpenStreetMap 기준 동네 위치로 고쳤어요(이동 시간·지도 핀용)
 Object.assign(COORD,{"자매국수": [33.49206, 126.46], "제주전복물회": [34.98577, 128.05404], "보헤미안 박이추커피": [37.84159, 128.86784], "아르비토 카페": [34.96997, 127.97152], "비토섬 별주부전테마파크": [34.96997, 127.97152], "강릉솔향수목원": [37.6945, 128.85956], "재건냉면": [35.08982, 128.0841], "교리김밥": [35.82036, 129.21382], "실안해안도로 낙조": [34.94939, 128.04762]});
 for(const k of ["자매국수","제주전복물회","보헤미안 박이추커피","아르비토 카페","비토섬 별주부전테마파크","강릉솔향수목원","재건냉면","교리김밥","실안해안도로 낙조"])if(GEOV[k])GEOV[k]=COORD[k];
+// 2026-10-23 전체 위치 재점검: OpenStreetMap 위치와 150m 넘게 어긋난 곳을 고쳤어요(해외 60곳·국내 15곳)
+const COFIX={"우메다 지하 식당가":[34.70304,135.49951],"릴로 커피 로스터즈":[34.67406,135.49822],"타카무라 와인 앤 커피 로스터즈":[34.6873,135.49109],"규카츠 모토무라 시부야":[34.65698,139.70402],"오쿠탄 난젠지":[35.01244,135.79307],"% 아라비카 히가시야마":[34.99864,135.77828],"혼케 오와리야 본점":[35.01275,135.76015],"사가노 도롯코 열차":[35.01874,135.68043],"가모가와 강변":[35.00904,135.77172],"롯폰마츠 츠타야 서점":[33.57745,130.37805],"렉 커피 야쿠인":[33.57831,130.39597],"이토시마 해변":[33.64016,130.19669],"스펀 천등 날리기":[25.04266,121.77678],"린둥팡 우육면":[25.04722,121.54305],"쩨오이 (쩨오 출라)":[13.74254,100.52251],"쩟페어 야시장":[13.82028,100.56472],"미꽝 1A":[16.07238,108.21913],"분짜까 109":[16.07439,108.2208],"베 만 해산물":[16.08181,108.24728],"손짜 야시장":[16.06072,108.23152],"티옹바루 베이커리":[1.28445,103.83365],"PS 카페 뎀시":[1.3047,103.81107],"센강 유람선":[48.86398,2.30583],"텐 벨즈":[48.87349,2.36474],"트라피치노 테스타초":[41.87971,12.47376],"테스타초 시장":[41.87682,12.47377],"그리니치":[51.47736,-0.00085],"노마드 커피":[41.38891,2.17717],"오타루 운하":[43.20146,141.00123],"스프카레 가라쿠":[43.05805,141.3551],"기타카로 삿포로 본관":[43.0619,141.34883],"모이와산 전망대":[43.02698,141.32936],"미야코시야 커피":[43.05414,141.31565],"고우리 대교":[26.68664,128.01732],"마키시 공설시장":[26.21455,127.68829],"슈리 소바":[26.21754,127.72278],"블루씰 마키미나토 본점":[26.26736,127.7214],"사카에마치 시장":[26.21728,127.69708],"A&W 마키미나토":[26.26669,127.72837],"팀호완 삼수이포점":[22.32903,114.16634],"막스 누들":[22.283,114.15463],"란퐁유엔":[22.28264,114.1538],"침차이키":[22.28297,114.15448],"빈원더스 나트랑":[12.2174,109.24122],"레인포레스트 카페":[12.24082,109.19197],"스카이라이트 루프탑":[12.24319,109.19613],"반깐 51":[12.23954,109.19216],"베트남 여성 박물관":[21.02335,105.8516],"짜까 라봉":[21.03568,105.84915],"콩카페 하노이":[21.0289,105.8497],"사랑의 절벽":[13.53532,144.80251],"이파오 비치 공원":[13.50424,144.78928],"괌 프리미어 아울렛":[13.48953,144.78169],"비친 쉬림프":[13.51336,144.80582],"차모로 빌리지 수요 야시장":[13.4776,144.75216],"건 비치 선셋":[13.5252,144.804],"리티디안 비치":[13.65404,144.86253],"피카스 카페":[13.50789,144.81006],"더 비치 바":[13.52425,144.80408],"모리히코":[43.05331,141.31864],"안반데기":[37.62279,128.73927],"BTS 버스정류장":[37.91234,128.81704],"전주수목원":[35.87044,127.05378],"여수해상케이블카":[34.73056,127.74159],"여수 낭만포차":[34.73701,127.74833],"무슬목 해변":[34.68445,127.77656],"연남동 카페거리":[37.56217,126.92265],"서울식물원":[37.56884,126.83563],"감천문화마을":[35.0973,129.01065],"사려니숲길":[33.42299,126.62613],"제주 흑돼지거리":[33.51543,126.52682],"천지연폭포":[33.24471,126.55964],"영실탐방로":[33.34813,126.49639],"롯데월드 어드벤처 부산":[35.19714,129.21332],"송정해수욕장":[35.17765,129.19858]};
+for(const k in COFIX){COORD[k]=COFIX[k];if(GEOV[k])GEOV[k]=COFIX[k]}
 // 카카오 대조에서 찾을 수 없던 곳(폐업·이전 가능성)은 추천에서 빼요
 const REMOVED=new Set(["신기숲", "앤트러사이트 한림", "몽상드애월", "팔우정 해장국거리", "숙영식당", "돌산 오션뷰 카페거리"]);
 for(const c in CITY)CITY[c].p=CITY[c].p.filter(x=>!REMOVED.has(x[0]));
