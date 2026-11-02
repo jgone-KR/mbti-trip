@@ -755,6 +755,10 @@ input[type=time]:not(.ghost),input[type=date]:not(.ghost){cursor:pointer;min-wid
 .reqban{border-radius:14px;padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:4px;background:var(--paper);border:2px solid var(--accent)}
 .reqban.load{background-image:linear-gradient(100deg,var(--paper) 30%,var(--tint) 50%,var(--paper) 70%);background-size:200% 100%;animation:phshim 1.4s linear infinite}
 .reqban.fail{border-color:var(--stamp)}
+.reqlist{list-style:none;margin:2px 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.reqlist li{display:flex;align-items:center;gap:4px;background:var(--tint);border-radius:999px;padding:5px 6px 5px 12px;font-size:14px;font-weight:700;line-height:1.35}
+.reqlist li button{all:unset;cursor:pointer;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;color:var(--muted)}
+.reqlist li button:hover{background:var(--paper);color:var(--ink)}
 .reqban .rtag{align-self:flex-start;font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;background:var(--accent);color:var(--accent-ink)}
 .reqban p{margin:2px 0;font-size:14.5px;line-height:1.55}
 .reqban .miss{color:var(--stamp);font-weight:600}.reqban .miss a{color:var(--accent);font-weight:800;white-space:nowrap}
@@ -1070,7 +1074,7 @@ li.stop.msel .scard{box-shadow:0 0 0 2px var(--accent);border-radius:12px}
   <!-- 추천 기준 -->
   <section class="page" id="pg-how" aria-labelledby="hHow" hidden>
     <div class="subbar"><button class="back" aria-label="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="hHow">추천 기준</h1></div>
-    <p class="small" style="margin:0 0 10px">앱 버전 <b>v41</b> · 2026.11.02</p>
+    <p class="small" style="margin:0 0 10px">앱 버전 <b>v42</b> · 2026.11.02</p>
     <button class="linkbtn" type="button" data-lang-open style="margin:0 0 14px">언어 바꾸기 · Language</button>
     <button class="linkbtn" type="button" onclick="window.showOnboarding&&window.showOnboarding()" style="margin:0 0 14px">앱 사용법 다시 보기</button>
     <button class="linkbtn" type="button" onclick="window.resetTours&&window.resetTours();toast('화면별 도움말을 다시 켰어요. 각 화면에 들어가면 다시 나와요')" style="margin:0 0 14px">화면별 도움말 다시 켜기</button>
@@ -2355,6 +2359,10 @@ const REQCHIPS=["현지 음식 위주","실내 위주","덜 걷기","야경 꼭"
 try{st.req=localStorage.getItem("mbtiReq")||""}catch(e){st.req=""}
 const reqSave=()=>{try{localStorage.setItem("mbtiReq",st.req||"")}catch(e){}};
 const reqParts=()=>String(st.req||"").split(/\s*,\s*/).filter(Boolean);
+// 지금 코스에 반영 중인 요청들: 새로 부탁하면 쌓이고, 여행지를 바꾸면 비워요
+st.reqs=[];st.reqCity="";
+const reqJoin=()=>st.reqs.length>1?st.reqs.map((r,i)=>`${i+1}. ${r}`).join("\n"):(st.reqs[0]||"");
+const reqListHTML=(del)=>st.reqs.length?`<ul class="reqlist">${st.reqs.map((r,i)=>`<li>“${esc(r)}”${del?`<button type="button" data-rqdel="${i}" aria-label="이 요청 빼기">✕</button>`:""}</li>`).join("")}</ul>`:"";
 function renderReq(){
   $("reqChips").innerHTML=REQCHIPS.map(c=>`<button type="button" data-rc="${c}" aria-pressed="${reqParts().includes(c)}">${c}</button>`).join("");
   if(document.activeElement!==$("reqInput"))$("reqInput").value=st.req||"";
@@ -2363,11 +2371,11 @@ function renderReq(){
 function reqBanner(state,P){
   const el=$("recReq");if(!el)return;
   if(state==="none"){el.innerHTML="";return}
-  if(state==="loading"){el.innerHTML=`<div class="reqban load"><b>요청을 반영하는 중이에요</b><span>“${esc(st.appliedReq||st.req)}”</span><span class="small">AI가 등록된 장소 중에서 골라 코스를 짜고 있어요. 잠시만요.</span></div>`;return}
+  if(state==="loading"){el.innerHTML=`<div class="reqban load"><b>요청을 반영하는 중이에요</b>${st.reqs.length?reqListHTML(false):`<span>“${esc(st.appliedReq||st.req)}”</span>`}<span class="small">AI가 등록된 장소 중에서 골라 코스를 짜고 있어요. 잠시만요.</span></div>`;return}
   if(state==="fail"){el.innerHTML=`<div class="reqban fail"><b>요청을 반영하지 못했어요</b><span class="small">${esc(P||"AI 연결이 안 돼서")} 기본 추천을 보여 드려요. 잠시 뒤 <b>다른 코스</b>를 눌러 다시 시도해 보세요.</span></div>`;return}
-  const city=P.city,hint=P.aiHint||(city+" "+(P.req||st.appliedReq||"").split(",")[0]);
+  const city=P.city,hint=P.aiHint||(city+" "+(st.reqs[st.reqs.length-1]||P.req||"").split(",")[0]);
   const url=isKR(city)?`https://map.kakao.com/link/search/${encodeURIComponent(hint)}`:`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hint)}`;
-  el.innerHTML=`<div class="reqban ok"><span class="rtag">AI 요청 반영</span><b>“${esc(P.req)}”</b><p>${esc(P.aiMsg||"")}</p>${P.aiMissing?`<p class="miss">${esc(P.aiMissing)} <a href="${url}" target="_blank" rel="noopener">${mapApp(city)}에서 ‘${esc(hint)}’ 찾기 ›</a></p><p class="small">지도에서 찾은 가게는 <b>고치고 저장</b> → <b>장소 추가</b>에서 이름을 직접 넣을 수 있어요.</p>`:""}<button type="button" class="linkbtn" id="reqClear">요청 지우고 기본 추천 보기</button></div>`;
+  el.innerHTML=`<div class="reqban ok"><span class="rtag">AI 요청 반영${st.reqs.length>1?` · ${st.reqs.length}개`:""}</span>${st.reqs.length?reqListHTML(true):`<b>“${esc(P.req)}”</b>`}<p>${esc(P.aiMsg||"")}</p>${P.aiMissing?`<p class="miss">${esc(P.aiMissing)} <a href="${url}" target="_blank" rel="noopener">${mapApp(city)}에서 ‘${esc(hint)}’ 찾기 ›</a></p><p class="small">지도에서 찾은 가게는 <b>고치고 저장</b> → <b>장소 추가</b>에서 이름을 직접 넣을 수 있어요.</p>`:""}<button type="button" class="linkbtn" id="reqClear">${st.reqs.length>1?"요청 모두 지우고":"요청 지우고"} 기본 추천 보기</button></div>`;
 }
 async function aiRec(prev,reqIn){
   const base=st.rec,req=String(reqIn!=null?reqIn:(st.appliedReq||"")).trim();if(!req)return;
@@ -2384,7 +2392,7 @@ async function aiRec(prev,reqIn){
 현지 일정 시간: 첫날 ${fmt(base.dep)} 시작, 마지막 날 ${fmt(base.ret)} 마무리 (중간 날은 09:30~21:30)
 여행 성향: ${pr.code} (${describe(pr)})${pr.age?` / 나이대: ${pr.age} (${AGES[pr.age].help})`:""}
 
-[사용자 추가 요청]
+[사용자 추가 요청]${st.reqs.length>1?" - 아래 요청을 모두 함께 지켜. 서로 부딪히면 번호가 큰(나중에 한) 요청을 우선해.":""}
 ${req}
 
 [기본 추천 코스]
@@ -2480,13 +2488,17 @@ $("ageChips").addEventListener("click",e=>{const b=e.target.closest("[data-age]"
   st[k]=v;syncLen();savePrefs();renderHome();
 }));
 $("meChip").onclick=()=>go("test");
-$("goHome").onclick=async()=>{const gb=$("goHome");if(gb.dataset.busy)return;gb.dataset.busy=1;try{await waitLive(st.city)}finally{delete gb.dataset.busy}const inRec=!$("condBody").hidden,req=(st.req||"").trim();st.appliedReq=req;st.rec=build();renderTicket("rec",true);reqBanner("none");
+$("goHome").onclick=async()=>{const gb=$("goHome");if(gb.dataset.busy)return;gb.dataset.busy=1;try{await waitLive(st.city)}finally{delete gb.dataset.busy}const inRec=!$("condBody").hidden,req0=(st.req||"").trim();
+  if(st.reqCity!==st.city){st.reqs=[];st.reqCity=st.city}
+  if(req0&&!st.reqs.includes(req0))st.reqs.push(req0);
+  const req=reqJoin();st.appliedReq=req;st.rec=build();renderTicket("rec",true);reqBanner("none");
   // 한 번 쓴 추가 요청은 입력칸에서 지워요(다른 지역으로 다시 추천받을 때 모르고 같이 들어가지 않게). 이 코스의 '다른 코스'에는 계속 반영돼요.
-  if(req){st.req="";reqSave();renderReq()}
+  if(req0){st.req="";reqSave();renderReq()}
   if(inRec){condClose(false);renderRecSum();$("recCond").scrollIntoView({behavior:"smooth",block:"start"});if(!req)toast("바꾼 조건으로 새 코스를 짰어요")}else go("rec");if(req)aiRec(null,req)};
 $("reqChips").onclick=e=>{const b=e.target.closest("button[data-rc]");if(!b)return;const a=reqParts(),c=b.dataset.rc,i=a.indexOf(c);if(i>=0)a.splice(i,1);else a.push(c);st.req=a.join(", ");reqSave();renderReq()};
 $("reqInput").addEventListener("input",e=>{st.req=e.target.value.replace(/\s+/g," ").trimStart();reqSave();renderReq()});
-document.addEventListener("click",e=>{if(e.target&&e.target.id==="reqClear"){st.req="";st.appliedReq="";reqSave();st.rec=build();renderTicket("rec",true);renderRecSum();reqBanner("none");renderReq();toast("요청을 지우고 기본 추천으로 바꿨어요")}});
+document.addEventListener("click",e=>{const rd=e.target&&e.target.closest&&e.target.closest("button[data-rqdel]");if(rd){st.reqs.splice(+rd.dataset.rqdel,1);if(st.reqs.length){st.appliedReq=reqJoin();st.rec=build();renderTicket("rec",true);renderRecSum();aiRec(null,st.appliedReq);toast("그 요청을 빼고 다시 짜고 있어요");return}}
+  if(e.target&&(e.target.id==="reqClear"||rd)){st.reqs=[];st.req="";st.appliedReq="";reqSave();st.rec=build();renderTicket("rec",true);renderRecSum();reqBanner("none");renderReq();toast("요청을 지우고 기본 추천으로 바꿨어요")}});
 $("picks").onclick=async e=>{const b=e.target.closest("button[data-pick]");if(!b)return;setCity(b.dataset.pick);await waitLive(st.city);st.rec=build();renderTicket("rec",true);go("rec")};
 function setCity(c){st.city=c;st.country=CITY[c].c;savePrefs();cityLive(c)}
 /* 여행지 선택 시트 */
