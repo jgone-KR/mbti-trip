@@ -1070,7 +1070,7 @@ li.stop.msel .scard{box-shadow:0 0 0 2px var(--accent);border-radius:12px}
   <!-- 추천 기준 -->
   <section class="page" id="pg-how" aria-labelledby="hHow" hidden>
     <div class="subbar"><button class="back" aria-label="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="hHow">추천 기준</h1></div>
-    <p class="small" style="margin:0 0 10px">앱 버전 <b>v40</b> · 2026.10.27</p>
+    <p class="small" style="margin:0 0 10px">앱 버전 <b>v41</b> · 2026.11.02</p>
     <button class="linkbtn" type="button" data-lang-open style="margin:0 0 14px">언어 바꾸기 · Language</button>
     <button class="linkbtn" type="button" onclick="window.showOnboarding&&window.showOnboarding()" style="margin:0 0 14px">앱 사용법 다시 보기</button>
     <button class="linkbtn" type="button" onclick="window.resetTours&&window.resetTours();toast('화면별 도움말을 다시 켰어요. 각 화면에 들어가면 다시 나와요')" style="margin:0 0 14px">화면별 도움말 다시 켜기</button>
@@ -1747,7 +1747,7 @@ const DUR={"하롱베이 당일투어":600,"유니버설 스튜디오 재팬":54
  "우도":240,"혼문섬 스노클링":240,"푸른 동굴 스노클링":180,"나이트 사파리":180,"담넌사두억 수상시장":180,"야나가와 뱃놀이":180,"롯데월드 어드벤처 부산":300,"경주월드":300,"센토사섬":240,"옹핑 360·천단대불":240,
  "오키나와 추라우미 수족관":150,"아이리조트 머드온천":150,"루브르 박물관":180,"바티칸 박물관·시스티나":180,"대영박물관":150,"메트로폴리탄 미술관":180,"국립고궁박물원":150,"팀랩 플래닛":120,"팀랩 보더리스":150,"가든스 바이 더 베이":150,"오사카성 공원":120,"사천바다케이블카":120,"여수해상케이블카":90,"아쿠아플라넷 여수":120,"9.81파크":120,"스카이라인 루지 부산":120};
 const FULLDAY=n=>(DUR[n]||0)>=360;
-const stayOf=x=>{const n=x&&x.p&&x.p[0];return n&&DUR[n]?DUR[n]/60:stay(x&&x.cat)};
+const stayOf=x=>{if(x&&x.fmin)return x.fmin/60;const n=x&&x.p&&x.p[0];return n&&DUR[n]?DUR[n]/60:stay(x&&x.cat)};
 function haversine(a,b){const R=6371,r=x=>x*Math.PI/180;const dLa=r(b[0]-a[0]),dLo=r(b[1]-a[1]);const h=Math.sin(dLa/2)**2+Math.cos(r(a[0]))*Math.cos(r(b[0]))*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
 const up5=m=>Math.max(5,Math.ceil(m/5)*5);
 function leg(a,b,city){
@@ -1972,7 +1972,7 @@ function ensureWin(P){
 }
 function autoFit(w,d){
   const P=planOf(w);ensureWin(P);const day=P.days[d],S=P.win[d][0];
-  day.forEach((s,i)=>{if(i===0){s.h=r10(S);return}const p=day[i-1];s.h=r10(p.h+stayOf(p)+((leg(p,s,P.city)||{min:20}).min)/60)});
+  day.forEach((s,i)=>{if(s.fixed)return;if(i===0){s.h=r10(S);return}const p=day[i-1];s.h=r10(p.h+stayOf(p)+((leg(p,s,P.city)||{min:20}).min)/60)});
   st.dirty=true;renderTicket(w,false);toast("첫 일정 시간과 이동 시간에 맞춰 시간을 다시 계산했어요.");
 }
 const LEGICON={walk:'<svg viewBox="0 0 24 24"><circle cx="13" cy="4.5" r="1.8"/><path d="M10 21l2-6 3 3v3M9 11l3-3 3 2 2 3M12 8l-1 5"/></svg>',
@@ -2402,18 +2402,36 @@ ${cand}
 - 점심(11:30~13:30)과 저녁(17:30~19:30) 시간대에 식사를 넣고, 요청에 식사 조건이 있으면 그 시간대에 맞는 곳을 넣어.
 - 이동이 짧은 순서로 동선을 짜.
 - 요청에 맞는 장소가 후보에 없거나 부족하면 missing에 한 문장으로 솔직하게 적고, searchHint에 지도 검색어를 적어 (예: "${base.city} 게장 맛집"). 충분하면 둘 다 빈 문자열.
-- message는 존댓말 2문장. 요청을 어떻게 반영했는지 구체적인 가게 이름과 함께.
+- 요청에 시각이 정해진 일정(예: "16시 숙소 입실", "19시 공연 예약")이나 사용자가 직접 이름을 댄 곳(숙소, 예약한 식당 등)이 있으면, 목록에 없어도 fixed에 넣어. day는 1부터 세는 일차, time은 "HH:MM", kind는 숙소면 "hotel" 아니면 "place", min은 그곳에 머무는 분(숙소 입실은 30). 날짜·일차를 말하지 않았으면 첫날로 해. 없으면 빈 배열.
+- fixed에 넣은 곳은 days에 쓰지 마. 대신 days는 fixed 시각 앞뒤로 자연스럽게 이어지게 짜(그 시각 전에 끝날 곳 → fixed → 그 뒤 일정).
+- message는 존댓말 2문장. 요청을 어떻게 반영했는지 구체적인 가게 이름과 함께. fixed가 있으면 그 시각과 이름을 그대로 말해.
 ${aiLangRule("message와 missing")}
 JSON으로만 답해:
-{"days":[["장소 이름", ...], ...],"message":"...","missing":"","searchHint":""}`;
+{"days":[["장소 이름", ...], ...],"fixed":[{"day":1,"time":"16:00","name":"...","kind":"hotel","min":30}],"message":"...","missing":"","searchHint":""}`;
     const out=await sm.json(prompt,{modelTier:"default",cache:false});
     if(!out||!Array.isArray(out.days))throw {msg:"AI 답을 읽지 못해서"};
     const all=new Map(CITY[base.city].p.map(p=>[p[0],p])),used=new Set();
     const days=base.days.map((d,i)=>{const names=(out.days[i]||[]).filter(x=>typeof x==="string"&&all.has(x)&&!used.has(x));names.forEach(x=>used.add(x));
       return names.length?names.slice(0,6).map(x=>({cat:all.get(x)[1],h:0,p:all.get(x)})):d.map(s=>Object.assign({},s))});
     const P=Object.assign({},base,{days,req,aiMsg:String(out.message||"").slice(0,300),aiMissing:String(out.missing||"").slice(0,160),aiHint:String(out.searchHint||"").slice(0,40),no:Math.floor(Math.random()*9000)+1000});
-    ensureWin(P);P.days.forEach((day,d)=>{const S=P.win[d][0];let food=0;day.forEach((s,i)=>{let t=i===0?S:(()=>{const q=day[i-1];return q.h+stayOf(q)+((leg(q,s,P.city)||{min:20}).min)/60})();
-      if(s.cat==="f"){food++;t=Math.max(t,food===1?(S<11.5?11.5:t):17.5)}if(s.cat==="n")t=Math.max(t,18.5);s.h=r10(t)})});
+    ensureWin(P);
+    // 요청에 시각을 정해 둔 일정(숙소 입실, 예약 등)은 목록에 없어도 그 시각에 꼭 넣어요
+    const fx=(Array.isArray(out.fixed)?out.fixed:[]).map(f=>{const m=/^(\d{1,2})(?::(\d{2}))?/.exec(String(f&&f.time||""));const nm=String(f&&f.name||"").trim().slice(0,40);
+      if(!m||!nm)return null;const d=Math.min(n,Math.max(1,parseInt(f.day,10)||1))-1,h=+m[1]+(+(m[2]||0))/60,mn=Math.min(240,Math.max(10,+f.min||(f.kind==="hotel"?30:60)));
+      if(h<0||h>=24)return null;const ex=all.get(nm);
+      return{d,s:ex?{cat:ex[1],h,p:ex,fixed:true,fmin:mn}:{cat:"x",h,p:[nm,"x",0,0,0,f.kind==="hotel"?"요청하신 숙소 입실 시간이에요":"요청하신 일정이에요"],custom:true,fixed:true,hotel:f.kind==="hotel",fmin:mn}}}).filter(Boolean);
+    // 같은 곳이 이미 코스에 있으면 빼고, 정해진 일정으로 넣어요. 순서는 아래에서 시각에 맞춰 다시 짜요
+    fx.forEach(f=>{const day=P.days[f.d];for(let i=day.length-1;i>=0;i--)if(day[i].p[0]===f.s.p[0])day.splice(i,1);day.push(f.s)});
+    const stayX=stayOf;
+    P.days.forEach((day,d)=>{const S=P.win[d][0],E=P.win[d][1],fixedAt=day.filter(x=>x.fixed).sort((a,b)=>a.h-b.h);let rest=day.filter(x=>!x.fixed);
+      const out=[];let t=S,food=0,prev=null;
+      const place=x=>{let a=prev?t+((leg(prev,x,P.city)||{min:20}).min)/60:t;if(x.cat==="f"){food++;a=Math.max(a,food===1?(S<11.5?11.5:a):17.5)}if(x.cat==="n")a=Math.max(a,18.5);return r10(a)};
+      for(const f of fixedAt){while(rest.length){const x=rest[0],a=place(x),need=a+stayX(x)+20/60;if(need>f.h+.01)break;x.h=a;out.push(x);t=a+stayX(x);prev=x;rest.shift()}
+        if(prev){const late=t+((leg(prev,f,P.city)||{min:20}).min)/60;if(late>f.h+.01&&out.length&&!out[out.length-1].fixed){const drop=out.pop();rest.unshift(drop);prev=out[out.length-1]||null;t=prev?prev.h+stayX(prev):S}}
+        f.h=r10(f.h);out.push(f);t=f.h+stayX(f);prev=f}
+      for(const x of rest){const a=place(x);if(out.length&&a+stayX(x)>E+.01)break;x.h=a;out.push(x);t=a+stayX(x);prev=x}
+      P.days[d]=out});
+    if(fx.length){const hs=fx.filter(f=>f.s.hotel);if(hs.length)P.hotelReq=hs[0].s.p[0]}
     st.rec=P;renderTicket("rec",true);renderRecSum();reqBanner("ok",P);
   }catch(e){reqBanner("fail",e&&e.msg?e.msg:e&&e.code==="rate_limited"?`오늘 AI ${AIU.limit}회를 다 써서`:e&&e.code==="busy"?"AI가 잠시 바빠서":"AI 연결이 안 돼서")}
 }
@@ -2544,7 +2562,7 @@ function stopHTML(w,s,d,i,last){
   const q=mapQ(s.p[0],P.city);
   const fit=custom?null:pct(s.p,pr);
   const r=custom?[]:reasons(s.p,pr);
-  const time=ed?`<input type="time" id="t-${d}-${i}" value="${fmt(s.h)}" data-d="${d}" data-i="${i}" aria-label="${esc(s.p[0])} 시간">`:(lz?loose(s.h):fmt(s.h));
+  const time=ed?`<input type="time" id="t-${d}-${i}" value="${fmt(s.h)}" data-d="${d}" data-i="${i}" aria-label="${esc(s.p[0])} 시간">`:(lz&&!s.fixed?loose(s.h):fmt(s.h));
   const map=`<a href="${placeURL(s.p[0],P.city)}" target="_blank" rel="noopener">지도</a>`;
   let acts=ed
     ?`<button data-act="up" data-d="${d}" data-i="${i}" ${i===0?"disabled":""}>위로</button><button data-act="down" data-d="${d}" data-i="${i}" ${i===last?"disabled":""}>아래로</button>${custom?"":`<button data-act="other" data-d="${d}" data-i="${i}">바꾸기</button>`}<button class="del" data-act="del" data-d="${d}" data-i="${i}">빼기</button>${map}`
@@ -2554,9 +2572,9 @@ function stopHTML(w,s,d,i,last){
   else if(fr)acts="";
   const hotTag=!fr&&!custom&&typeof HOT!=="undefined"&&HOT.has(s.p[0])?`<span class="hotw"><b>#</b>인스타 핫플</span>`:"";
   const durTag=!fr&&!custom&&DUR[s.p[0]]?`<span><b>⏱</b>${FULLDAY(s.p[0])?"하루 종일":"약 "+fmtDur(DUR[s.p[0]])} 걸려요</span>`:"";
-  const why=fr?`<span>빈 시간</span>`:custom?`<span>직접 추가</span>`:durTag+hotTag+(r.length?r.map(ch=>ch.startsWith("AGE:")?`<span class="agew"><b>${esc(AGES[ch.slice(4)]?AGES[ch.slice(4)].short:"")}</b>취향</span>`:`<span><b>${ch}</b>${WHY[ch]}</span>`).join(""):hotTag||durTag?"":`<span>시간대 균형으로 넣은 곳</span>`);
+  const why=fr?`<span>빈 시간</span>`:s.fixed?`<span><b>⏰</b>${s.hotel?"숙소 입실":"요청한 시각"} ${fmt(s.h)}</span>`:custom?`<span>직접 추가</span>`:durTag+hotTag+(r.length?r.map(ch=>ch.startsWith("AGE:")?`<span class="agew"><b>${esc(AGES[ch.slice(4)]?AGES[ch.slice(4)].short:"")}</b>취향</span>`:`<span><b>${ch}</b>${WHY[ch]}</span>`).join(""):hotTag||durTag?"":`<span>시간대 균형으로 넣은 곳</span>`);
   return `<li class="stop${ed?" ed":""}${custom?" free":""}"><div class="rail"><span class="num" aria-hidden="true">${i+1}</span></div>
-    <div class="scard"><div class="shead"><span class="time ${!ed&&lz?"loose":""}">${time}</span><span class="catchip c-${s.cat}">${CAT[s.cat]||"기타"}</span>${fit===null?"":`<span class="fit">궁합 ${fit}%</span>`}</div>
+    <div class="scard"><div class="shead"><span class="time ${!ed&&lz?"loose":""}">${time}</span><span class="catchip c-${s.cat}">${s.hotel?"숙소":CAT[s.cat]||"기타"}</span>${fit===null?"":`<span class="fit">궁합 ${fit}%</span>`}</div>
     ${!custom&&(s.cat==="s"||s.cat==="n")?`<span class="sphoto" data-ph="${esc(s.p[0])}" data-city="${esc(P.city)}" aria-hidden="true"></span>`:""}<span class="name"><span class="sr">${i+1}번째 </span>${esc(s.p[0])}</span><span class="note">${esc(s.p[5])}</span>${custom?"":infoHTML(s.p[0],P.city)}
     <div class="why">${why}</div><div class="acts">${acts}</div></div></li>`;
 }
@@ -2657,7 +2675,7 @@ function copyPlan(P){
   P.days.forEach((day,d)=>{
     if(P.days.length>1)lines.push("",`${d+1}일차${P.date?" "+dLabel(P.date,d):""}`);
     lines.push(`첫 일정 ${fmt(P.win[d][0])}`);
-    day.forEach((s,i)=>{lines.push(`${lz?loose(s.h):fmt(s.h)}  ${window.I18N?I18N.name(s.p[0]):s.p[0]}`);if(i<day.length-1){const L=leg(s,day[i+1],P.city);if(L)lines.push(`   ↓ ${L.mode} 약 ${fmtDur(L.min)}`)}});
+    day.forEach((s,i)=>{lines.push(`${lz&&!s.fixed?loose(s.h):fmt(s.h)}  ${window.I18N?I18N.name(s.p[0]):s.p[0]}`);if(i<day.length-1){const L=leg(s,day[i+1],P.city);if(L)lines.push(`   ↓ ${L.mode} 약 ${fmtDur(L.min)}`)}});
     lines.push(`일정 마무리 ${fmt(P.win[d][1])}`);
   });
   navigator.clipboard.writeText(window.I18N?I18N.text(lines.join("\n")):lines.join("\n")).then(()=>toast("코스를 복사했어요. 메신저에 붙여 넣으세요."),()=>toast("복사가 막혀 있어요. 코스를 길게 눌러 직접 복사해 주세요."));
